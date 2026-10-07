@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamus Bahasa Isyarat (Bisindo)</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f6;
+            --container-bg: #ffffff;
+            --text-color: #1a1a1a;
+            --header-bg: #e5e5e7;
+            --border-color: #2c2c2e;
+            --card-bg: #ffffff;
+            --btn-bg: #ffffff;
+            --btn-hover: #f0f0f2;
+            --shadow: rgba(0,0,0,0.08);
+            --subtext-color: #666666;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --text-color: #f0f0f0;
+            --header-bg: #2d2d2d;
+            --border-color: #444444;
+            --card-bg: #252525;
+            --btn-bg: #2d2d2d;
+            --btn-hover: #3a3a3a;
+            --shadow: rgba(0,0,0,0.4);
+            --subtext-color: #aaaaaa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 10px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Container utama menyerupai layar HP */
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--container-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 4px 20px var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Top Header */
+        .top-header {
+            background-color: var(--header-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        .top-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        /* Search Bar */
+        .search-box {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid var(--border-color);
+            border-radius: 25px;
+            padding: 8px 14px;
+            background-color: var(--card-bg);
+            gap: 8px;
+        }
+
+        .search-icon {
+            font-size: 16px;
+            color: var(--subtext-color);
+        }
+
+        .search-box input {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 15px;
+            color: var(--text-color);
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: var(--subtext-color);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        /* Navigasi Tombol Utama (A-Z, Kategori, dll) */
+        .main-nav-bar {
+            display: flex;
+            justify-content: space-between;
+            background-color: var(--header-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            padding: 4px;
+            gap: 4px;
+            overflow-x: auto;
+        }
+
+        .nav-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 8px 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-color);
+            cursor: pointer;
+            text-transform: uppercase;
+            white-space: nowrap;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+
+        /* Section Title */
+        .section-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-color);
+            margin-top: 10px;
+            margin-bottom: 6px;
+        }
+
+        /* Accordion / Card Isyarat */
+        .word-card {
+            border: 1.5px solid var(--border-color);
+            border-radius: 16px;
+            background-color: var(--card-bg);
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+
+        .card-header-btn {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 16px;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .arrow-icon {
+            font-size: 14px;
+            transition: transform 0.3s;
+        }
+
+        .card-header-btn.active .arrow-icon {
+            transform: rotate(180deg);
+        }
+
+        .card-body {
+            display: none;
+            padding: 12px 16px 16px 16px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--container-bg);
+        }
+
+        /* Video Container & Action Buttons */
+        .video-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .video-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .video-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-color);
+        }
+
+        .iframe-container {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background-color: #000;
+        }
+
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background-color: var(--btn-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: var(--btn-hover);
+        }
+
+        /* Status & Loading Message */
+        .status-msg {
+            text-align: center;
+            color: var(--subtext-color);
+            font-size: 14px;
+            padding: 20px 0;
+            font-style: italic;
+        }
+
+        /* Modal Salin Tautan */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: var(--container-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            width: 100%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            text-align: center;
+        }
+
+        .modal-content h3 {
+            font-size: 16px;
+            color: var(--text-color);
+        }
+
+        .modal-btn {
+            background-color: var(--btn-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .modal-btn:hover {
+            background-color: var(--btn-hover);
+        }
+
+        .modal-btn.cancel {
+            background-color: transparent;
+            border-color: transparent;
+            color: #e74c3c;
+            margin-top: 4px;
+        }
+
+        /* Toast Popup */
+        #toast {
+            visibility: hidden;
+            min-width: 220px;
+            background-color: #2c2c2e;
+            color: #ffffff;
+            text-align: center;
+            border-radius: 20px;
+            padding: 10px 16px;
+            position: fixed;
+            z-index: 3000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.3s, fadeout 0.3s 2.5s;
+        }
+
+        @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+        @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+    </style>
+</head>
+<body data-theme="light">
+
+    <div class="app-container">
+        <!-- Header Utama -->
+        <div class="top-header">
+            <h1>Kamus Bisindo</h1>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Cari isyarat..." onfocus="switchToSearchView()" oninput="handleSearchInput()">
+            <button class="clear-btn" id="clearSearchBtn" onclick="switchToHomeView()">✕</button>
+        </div>
+
+        <!-- HALAMAN UTAMA -->
+        <div id="homeView">
+            <!-- Navigasi Tombol -->
+            <div class="main-nav-bar">
+                <button class="nav-btn" onclick="showToast('Fitur A-Z akan segera hadir')">A-Z</button>
+                <button class="nav-btn" onclick="showToast('Fitur Kategori akan segera hadir')">KATEGORI</button>
+                <button class="nav-btn" onclick="showToast('Fitur Contoh Kalimat akan segera hadir')">CONTOH KALIMAT</button>
+                <button class="nav-btn" onclick="showToast('Fitur Tebak Isyarat akan segera hadir')">TEBAK ISYARAT</button>
+            </div>
+
+            <!-- Isyarat Hari Ini -->
+            <div class="section-title">Isyarat Hari Ini</div>
+            <div id="dailyIsyaratContainer">
+                <p class="status-msg">Memuat isyarat hari ini...</p>
+            </div>
+        </div>
+
+        <!-- TAMPILAN PENCARIAN -->
+        <div id="searchView" style="display: none;">
+            <div id="resultsDiv">
+                <p class="status-msg">Ketik kata untuk mulai mencari...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Dialog Salin Tautan -->
+    <div id="shareModal" class="modal-backdrop" onclick="if(event.target===this) closeShareModal()">
+        <div class="modal-content">
+            <h3>Salin Tautan</h3>
+            <button class="modal-btn" onclick="copyKamusLink()">📋 Salin Link Halaman Kamus</button>
+            <button class="modal-btn" onclick="copyYoutubeLink()">▶ Salin Link Video YouTube</button>
+            <button class="modal-btn cancel" onclick="closeShareModal()">Batal</button>
+        </div>
+    </div>
+
+    <!-- Notifikasi Toast -->
+    <div id="toast">Tautan berhasil disalin!</div>
+
+    <!-- Library PapaParse -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script>
+        let dictionaryData = [];
+        let currentShareWord = '';
+        let currentYoutubeUrl = '';
+        let isSearchView = false;
+
+        const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx8Kb-ezyZdVw46ruREAydDcWtquytEFrWomKc9zdMgOG0dGbElZz8NmVDMGpvgSJmY9fSDV18LVty/pub?output=csv';
+
+        // Mengunduh dan Memproses CSV dari Google Sheets
+        Papa.parse(sheetCsvUrl, {
+            download: true,
+            header: false,
+            skipEmptyLines: true,
+            complete: function(results) {
+                try {
+                    dictionaryData = results.data
+                        .filter(row => row && row.length > 0 && row[0] && row[0].trim() !== "")
+                        .map(row => {
+                            return {
+                                word: row[0].trim(),
+                                rawHtml: (row.length > 1 && row[1]) ? row[1].trim() : ""
+                            };
+                        });
+                    
+                    setupWordOfTheDay();
+                    
+                    // Cek jika ada URL parameter ?kata=...
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const sharedWord = urlParams.get('kata');
+                    if (sharedWord) {
+                        document.getElementById('searchInput').value = sharedWord;
+                        switchToSearchView();
+                        handleSearchInput();
+                    }
+                } catch (e) {
+                    document.getElementById('dailyIsyaratContainer').innerHTML = '<p class="status-msg">Gagal memproses data kamus.</p>';
+                }
+            },
+            error: function() {
+                document.getElementById('dailyIsyaratContainer').innerHTML = '<p class="status-msg">Gagal mengunduh data dari Google Sheets.</p>';
+            }
+        });
+
+        // Pengaturan Isyarat Hari Ini (Berubah Otomatis Setiap Hari)
+        function setupWordOfTheDay() {
+            if (!dictionaryData || dictionaryData.length === 0) return;
+            
+            const today = new Date();
+            const daySeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+            const dayIndex = daySeed % dictionaryData.length;
+            const todayItem = dictionaryData[dayIndex];
+            
+            const container = document.getElementById('dailyIsyaratContainer');
+            container.innerHTML = '';
+            container.appendChild(createCardNode(todayItem));
+        }
+
+        // Perpindahan Tampilan (Home View vs Search View)
+        function switchToSearchView() {
+            if (!isSearchView) {
+                isSearchView = true;
+                document.getElementById('homeView').style.display = 'none';
+                document.getElementById('searchView').style.display = 'block';
+                document.getElementById('clearSearchBtn').style.display = 'flex';
+            }
+        }
+
+        function switchToHomeView() {
+            isSearchView = false;
+            document.getElementById('searchInput').value = '';
+            document.getElementById('homeView').style.display = 'block';
+            document.getElementById('searchView').style.display = 'none';
+            document.getElementById('clearSearchBtn').style.display = 'none';
+            document.getElementById('resultsDiv').innerHTML = '<p class="status-msg">Ketik kata untuk mulai mencari...</p>';
+        }
+
+        // Penanganan Pencarian
+        function handleSearchInput() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const resultsDiv = document.getElementById('resultsDiv');
+            resultsDiv.innerHTML = '';
+
+            if (!query) {
+                resultsDiv.innerHTML = '<p class="status-msg">Ketik kata untuk mulai mencari...</p>';
+                return;
+            }
+
+            const filtered = dictionaryData.filter(item => item.word.toLowerCase().includes(query));
+
+            if (filtered.length === 0) {
+                resultsDiv.innerHTML = '<p class="status-msg">Kosakata atau kalimat tidak ditemukan.</p>';
+                return;
+            }
+
+            const maxDisplay = 25;
+            const dataToDisplay = filtered.slice(0, maxDisplay);
+
+            dataToDisplay.forEach(item => {
+                resultsDiv.appendChild(createCardNode(item));
+            });
+
+            if (filtered.length > maxDisplay) {
+                const moreMsg = document.createElement('p');
+                moreMsg.className = 'status-msg';
+                moreMsg.innerText = 'Menampilkan ' + maxDisplay + ' dari ' + filtered.length + ' hasil.';
+                resultsDiv.appendChild(moreMsg);
+            }
+        }
+
+        // Ekstraksi Informasi dari Iframe YouTube
+        function parseYoutubeData(iframeSrc) {
+            let videoId = null;
+            let seconds = 0;
+            
+            if (iframeSrc) {
+                let vMatch = iframeSrc.match(/embed\/([a-zA-Z0-9_-]+)/);
+                if (vMatch) videoId = vMatch[1];
+                
+                let startMatch = iframeSrc.match(/[?&]start=(\d+)/);
+                if (startMatch) seconds = parseInt(startMatch[1]);
+            }
+
+            let watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : iframeSrc;
+            if (videoId && seconds > 0) {
+                watchUrl += `&t=${seconds}s`;
+            }
+
+            return { videoId, seconds, watchUrl };
+        }
+
+        // Membuat Kartu Accordion
+        function createCardNode(item) {
+            const card = document.createElement('div');
+            card.className = 'word-card';
+
+            const headerBtn = document.createElement('button');
+            headerBtn.className = 'card-header-btn';
+            headerBtn.innerHTML = `<span>${escapeHtml(item.word)}</span><span class="arrow-icon">▼</span>`;
+
+            const body = document.createElement('div');
+            body.className = 'card-body';
+
+            headerBtn.onclick = function() {
+                const isOpen = body.style.display === 'block';
+                if (isOpen) {
+                    body.style.display = 'none';
+                    headerBtn.classList.remove('active');
+                    body.innerHTML = '';
+                } else {
+                    body.style.display = 'block';
+                    headerBtn.classList.add('active');
+                    renderCardVideos(body, item);
+                }
+            };
+
+            card.appendChild(headerBtn);
+            card.appendChild(body);
+            return card;
+        }
+
+        // Rendernya Video di dalam Kartu
+        function renderCardVideos(bodyContainer, item) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = item.rawHtml;
+            const iframes = tempDiv.getElementsByTagName('iframe');
+
+            if (iframes.length === 0) {
+                bodyContainer.innerHTML = '<p class="status-msg">Belum ada video untuk isyarat ini.</p>';
+                return;
+            }
+
+            let html = '';
+            for (let i = 0; i < iframes.length; i++) {
+                let label = iframes.length > 1 ? `ISYARAT ${i + 1}` : 'ISYARAT';
+                let src = iframes[i].getAttribute('src') || '';
+                let parsed = parseYoutubeData(src);
+                let timeFormatted = formatSeconds(parsed.seconds);
+
+                html += `
+                    <div class="video-item">
+                        <div class="video-label">${label}</div>
+                        <div class="iframe-container">
+                            ${iframes[i].outerHTML}
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn" onclick="openShareModal('${escapeJs(item.word)}', '${escapeJs(parsed.watchUrl)}')">
+                                🔗 salin tautan
+                            </button>
+                            <a class="action-btn" href="${parsed.watchUrl}" target="_blank" rel="noopener">
+                                ▶ Tonton di YouTube
+                            </a>
+                            <button class="action-btn" onclick="let iframe = this.closest('.video-item').querySelector('iframe'); replayVideo(iframe, ${parsed.seconds});">
+                                🔄 ${timeFormatted}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            bodyContainer.innerHTML = html;
+        }
+
+        // Putar Ulang (Rewind) Video ke Timestamp
+        function replayVideo(iframeElement, seconds) {
+            if (!iframeElement) return;
+            let src = iframeElement.src;
+            src = src.replace(/&amp;start=\d+/, '').replace(/\?start=\d+/, '');
+            let separator = src.includes('?') ? '&' : '?';
+            iframeElement.src = src + separator + 'start=' + seconds + '&autoplay=1';
+        }
+
+        // Modal & Salin Tautan
+        function openShareModal(word, youtubeUrl) {
+            currentShareWord = word;
+            currentYoutubeUrl = youtubeUrl;
+            document.getElementById('shareModal').style.display = 'flex';
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').style.display = 'none';
+        }
+
+        function copyKamusLink() {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const shareUrl = baseUrl + '?kata=' + encodeURIComponent(currentShareWord);
+            copyToClipboard(shareUrl, "Link Kamus berhasil disalin!");
+            closeShareModal();
+        }
+
+        function copyYoutubeLink() {
+            if (currentYoutubeUrl) {
+                copyToClipboard(currentYoutubeUrl, "Link Video YouTube berhasil disalin!");
+            } else {
+                showToast("Link YouTube tidak tersedia.");
+            }
+            closeShareModal();
+        }
+
+        function copyToClipboard(text, msg) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => showToast(msg)).catch(() => prompt("Salin tautan ini:", text));
+            } else {
+                prompt("Salin tautan ini:", text);
+            }
+        }
+
+        // Utilitas
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeBtn');
+            if (body.getAttribute('data-theme') === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                btn.innerText = '☀️';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                btn.innerText = '🌙';
+            }
+        }
+
+        function formatSeconds(totalSeconds) {
+            let mins = Math.floor(totalSeconds / 60);
+            let secs = totalSeconds % 60;
+            let mStr = mins < 10 ? '0' + mins : mins;
+            let sStr = secs < 10 ? '0' + secs : secs;
+            return mStr + ':' + sStr;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.innerText = msg;
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function escapeJs(str) {
+            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+    </script>
+</body>
+</html>
