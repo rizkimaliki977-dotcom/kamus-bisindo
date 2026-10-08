@@ -529,7 +529,7 @@
             document.getElementById('resultsDiv').innerHTML = '<p class="status-msg">Ketik kata untuk mulai mencari...</p>';
         }
 
-        // Pencarian
+        // Pencarian dan Pengurutan Pintar
         function handleSearchInput() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const resultsDiv = document.getElementById('resultsDiv');
@@ -540,12 +540,37 @@
                 return;
             }
 
-            const filtered = dictionaryData.filter(item => item.word.toLowerCase().includes(query));
+            let filtered = dictionaryData.filter(item => item.word.toLowerCase().includes(query));
 
             if (filtered.length === 0) {
                 resultsDiv.innerHTML = '<p class="status-msg">Kosakata atau kalimat tidak ditemukan.</p>';
                 return;
             }
+
+            // Sistem Pengurutan (Sorting)
+            filtered.sort((a, b) => {
+                const wordA = a.word.toLowerCase();
+                const wordB = b.word.toLowerCase();
+                
+                // Prioritas 1: Kata Sama Persis
+                if (wordA === query) return -1;
+                if (wordB === query) return 1;
+                
+                // Prioritas 2: Diawali kata tersebut (misal: "ibu mertua")
+                const startsA = wordA.startsWith(query + " ");
+                const startsB = wordB.startsWith(query + " ");
+                if (startsA && !startsB) return -1;
+                if (!startsA && startsB) return 1;
+                
+                // Prioritas 3: Diawali huruf tersebut (misal: "ibukota")
+                const startsPrefixA = wordA.startsWith(query);
+                const startsPrefixB = wordB.startsWith(query);
+                if (startsPrefixA && !startsPrefixB) return -1;
+                if (!startsPrefixA && startsPrefixB) return 1;
+                
+                // Prioritas 4: Sisanya diurutkan abjad
+                return wordA.localeCompare(wordB);
+            });
 
             const maxDisplay = 25;
             filtered.slice(0, maxDisplay).forEach(item => {
