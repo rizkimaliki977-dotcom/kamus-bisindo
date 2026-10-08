@@ -99,7 +99,28 @@
             font-weight: 700;
             letter-spacing: -0.3px;
         }
+.brand-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: transform 0.2s;
+        }
 
+        .brand-link:active {
+            transform: scale(0.95);
+        }
+
+        .logo-video {
+            width: 44px; /* Sesuaikan ukuran jika kurang besar/kecil */
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--border-color);
+        }
+        
         .theme-toggle {
             position: absolute;
             right: 12px;
@@ -410,7 +431,13 @@
     <div class="app-container">
         <!-- Header -->
         <div class="top-header">
-            <h1>Kamus Bisindo</h1>
+            <!-- Tautan Logo dan Judul -->
+            <a href="index.html" class="brand-link" title="Kembali ke Beranda">
+                <video autoplay loop muted playsinline class="logo-video">
+                    <source src="logo-animasi.mp4" type="video/mp4">
+                </video>
+                <h1>Kamus Bisindo</h1>
+            </a>
             <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Ganti Tema">☀️</button>
         </div>
 
