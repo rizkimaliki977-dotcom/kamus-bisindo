@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tebak Isyarat - Kamus Bisindo</title>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #1a1a1a;
+            --header-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --card-bg: #ffffff;
+            --btn-bg: #ffffff;
+            --btn-hover: #f1f3f5;
+            --shadow: rgba(0,0,0,0.05);
+            --subtext-color: #6c757d;
+            --accent-green: #2ecc71;
+            --accent-red: #e74c3c;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #f0f0f0;
+            --header-bg: #1e1e1e;
+            --border-color: #333333;
+            --card-bg: #1e1e1e;
+            --btn-bg: #2d2d2d;
+            --btn-hover: #3a3a3a;
+            --shadow: rgba(0,0,0,0.3);
+            --subtext-color: #aaaaaa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 16px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Navigasi Atas */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-color);
+            text-decoration: none;
+            box-shadow: 0 2px 6px var(--shadow);
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background-color: var(--btn-hover);
+        }
+
+        .theme-toggle {
+            background: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--text-color);
+            box-shadow: 0 2px 6px var(--shadow);
+        }
+
+        /* Kartu Flashcard Utama */
+        .flashcard {
+            background-color: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 4px 16px var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            min-height: 280px;
+            justify-content: center;
+        }
+
+        .card-label {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--subtext-color);
+        }
+
+        .word-prompt {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-color);
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+            margin: 10px 0;
+        }
+
+        .main-action-btn {
+            background-color: var(--btn-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-color);
+            cursor: pointer;
+            box-shadow: 0 2px 8px var(--shadow);
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .main-action-btn:hover {
+            background-color: var(--btn-hover);
+            transform: translateY(-2px);
+        }
+
+        /* Kontainer Jawaban & Video */
+        .answer-container {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 10px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        .iframe-wrapper {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background-color: #000;
+        }
+
+        .iframe-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Bagian Evaluasi */
+        .eval-section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .eval-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .eval-buttons {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .eval-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-color);
+            background-color: var(--btn-bg);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .eval-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .eval-btn.yes:hover {
+            background-color: rgba(46, 204, 113, 0.15);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .eval-btn.no:hover {
+            background-color: rgba(231, 76, 60, 0.15);
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .status-msg {
+            color: var(--subtext-color);
+            font-size: 15px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Navigasi Atas -->
+        <div class="top-bar">
+            <a href="index.html" class="back-btn">← Kembali ke Kamus</a>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">☀️</button>
+        </div>
+
+        <!-- Kartu Flashcard -->
+        <div class="flashcard">
+            <div class="card-label">Tebak Isyarat</div>
+            
+            <div id="cardContent">
+                <p class="status-msg">Memuat data isyarat...</p>
+            </div>
+
+            <!-- Tombol Tampilkan Jawaban -->
+            <button id="showAnswerBtn" class="main-action-btn" style="display: none;" onclick="showAnswer()">
+                👁️ Tampilkan Jawaban
+            </button>
+
+            <!-- Tempat Video Jawaban -->
+            <div id="answerContainer" class="answer-container">
+                <div id="videoContainer"></div>
+            </div>
+
+            <!-- Bagian Evaluasi -->
+            <div id="evalSection" class="eval-section">
+                <div class="eval-title">Apa kamu berhasil menebak isyaratnya?</div>
+                <div class="eval-buttons">
+                    <button class="eval-btn no" onclick="nextCard(false)">👎 Tidak</button>
+                    <button class="eval-btn yes" onclick="nextCard(true)">👍 Iya</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script>
+        // Tema Sistem
+        function initTheme() {
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            applyTheme(prefersDark ? 'dark' : 'light');
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                applyTheme(e.matches ? 'dark' : 'light');
+            });
+        }
+
+        function applyTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            document.getElementById('themeBtn').innerText = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme');
+            applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+        }
+
+        initTheme();
+
+        // Data & Status Flashcard
+        let dictionaryData = [];
+        let currentItem = null;
+        const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx8Kb-ezyZdVw46ruREAydDcWtquytEFrWomKc9zdMgOG0dGbElZz8NmVDMGpvgSJmY9fSDV18LVty/pub?output=csv';
+
+        // Load Data Google Sheets
+        Papa.parse(sheetCsvUrl, {
+            download: true,
+            header: false,
+            skipEmptyLines: true,
+            complete: function(results) {
+                try {
+                    dictionaryData = results.data
+                        .filter(row => row && row.length > 0 && row[0] && row[0].trim() !== "" && row[1] && row[1].includes('<iframe'))
+                        .map(row => {
+                            return {
+                                word: row[0].trim(),
+                                rawHtml: row[1].trim()
+                            };
+                        });
+                    
+                    if (dictionaryData.length > 0) {
+                        loadNextQuestion();
+                    } else {
+                        document.getElementById('cardContent').innerHTML = '<p class="status-msg">Tidak ada data video yang ditemukan.</p>';
+                    }
+                } catch (e) {
+                    document.getElementById('cardContent').innerHTML = '<p class="status-msg">Gagal memproses data kamus.</p>';
+                }
+            },
+            error: function() {
+                document.getElementById('cardContent').innerHTML = '<p class="status-msg">Gagal mengunduh data dari Google Sheets.</p>';
+            }
+        });
+
+        // Pilih Kata Acak
+        function loadNextQuestion() {
+            const randomIndex = Math.floor(Math.random() * dictionaryData.length);
+            currentItem = dictionaryData[randomIndex];
+
+            document.getElementById('cardContent').innerHTML = `<div class="word-prompt">${escapeHtml(currentItem.word)}</div>`;
+            document.getElementById('showAnswerBtn').style.display = 'inline-block';
+            document.getElementById('answerContainer').style.display = 'none';
+            document.getElementById('evalSection').style.display = 'none';
+            document.getElementById('videoContainer').innerHTML = '';
+        }
+
+        // Tampilkan Jawaban
+        function showAnswer() {
+            document.getElementById('showAnswerBtn').style.display = 'none';
+            document.getElementById('answerContainer').style.display = 'flex';
+            document.getElementById('evalSection').style.display = 'flex';
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = currentItem.rawHtml;
+            const iframes = tempDiv.getElementsByTagName('iframe');
+
+            let html = '';
+            for (let i = 0; i < iframes.length; i++) {
+                html += `<div class="iframe-wrapper">${iframes[i].outerHTML}</div>`;
+            }
+
+            document.getElementById('videoContainer').innerHTML = html;
+        }
+
+        // Lanjut ke Kartu Berikutnya
+        function nextCard(isSuccess) {
+            loadNextQuestion();
+        }
+
+        function escapeHtml(str) { 
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); 
+        }
+    </script>
+</body>
+</html>
