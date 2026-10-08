@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="id">
 <head>
     <!-- Meta Deskripsi Utama -->
@@ -165,6 +165,14 @@
             padding-top: 20px;
         }
 
+        .video-item {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
         .iframe-wrapper {
             width: 100%;
             aspect-ratio: 16 / 9;
@@ -178,6 +186,31 @@
             width: 100%;
             height: 100%;
             border: none;
+        }
+
+        .video-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: var(--btn-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 20px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: var(--btn-hover);
         }
 
         /* Bagian Evaluasi */
@@ -241,6 +274,13 @@
             font-size: 15px;
             font-style: italic;
         }
+        
+        /* Informasi Statistik (Sisa Kartu) */
+        .deck-stats {
+            font-size: 12px;
+            color: var(--subtext-color);
+            margin-top: -10px;
+        }
     </style>
 </head>
 <body>
@@ -259,6 +299,8 @@
             <div id="cardContent">
                 <p class="status-msg">Memuat data isyarat...</p>
             </div>
+            
+            <div class="deck-stats" id="deckStats"></div>
 
             <!-- Tombol Tampilkan Jawaban -->
             <button id="showAnswerBtn" class="main-action-btn" style="display: none;" onclick="showAnswer()">
@@ -305,10 +347,20 @@
 
         initTheme();
 
-        // Data & Status Flashcard
+        // Data & Status Flashcard (Sistem Anki / Spaced Repetition)
         let dictionaryData = [];
+        let deck = []; // Tumpukan kartu saat ini
         let currentItem = null;
+        
         const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx8Kb-ezyZdVw46ruREAydDcWtquytEFrWomKc9zdMgOG0dGbElZz8NmVDMGpvgSJmY9fSDV18LVty/pub?output=csv';
+
+        // Fungsi Mengacak Array (Fisher-Yates Shuffle)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
 
         // Load Data Google Sheets
         Papa.parse(sheetCsvUrl, {
@@ -327,6 +379,9 @@
                         });
                     
                     if (dictionaryData.length > 0) {
+                        // Persiapkan Tumpukan Kartu
+                        deck = [...dictionaryData];
+                        shuffleArray(deck);
                         loadNextQuestion();
                     } else {
                         document.getElementById('cardContent').innerHTML = '<p class="status-msg">Tidak ada data video yang ditemukan.</p>';
@@ -340,19 +395,41 @@
             }
         });
 
-        // Pilih Kata Acak
+        // Ambil Kartu Paling Atas dari Tumpukan
         function loadNextQuestion() {
-            const randomIndex = Math.floor(Math.random() * dictionaryData.length);
-            currentItem = dictionaryData[randomIndex];
+            // Jika tumpukan habis, isi ulang dan acak lagi
+            if (deck.length === 0) {
+                deck = [...dictionaryData];
+                shuffleArray(deck);
+                alert("Hebat! Anda telah menyelesaikan seluruh tebakan. Kartu akan diacak ulang.");
+            }
+
+            currentItem = deck.shift(); // Ambil 1 kartu dari paling depan
 
             document.getElementById('cardContent').innerHTML = `<div class="word-prompt">${escapeHtml(currentItem.word)}</div>`;
+            document.getElementById('deckStats').innerText = `Sisa kartu di tumpukan: ${deck.length}`;
+            
             document.getElementById('showAnswerBtn').style.display = 'inline-block';
             document.getElementById('answerContainer').style.display = 'none';
             document.getElementById('evalSection').style.display = 'none';
             document.getElementById('videoContainer').innerHTML = '';
         }
 
-        // Tampilkan Jawaban
+        // Parsing Data YouTube untuk Tombol Link
+        function parseYoutubeData(iframeSrc) {
+            let videoId = null, seconds = 0;
+            if (iframeSrc) {
+                let vMatch = iframeSrc.match(/embed\/([a-zA-Z0-9_-]+)/);
+                if (vMatch) videoId = vMatch[1];
+                let startMatch = iframeSrc.match(/[?&]start=(\d+)/);
+                if (startMatch) seconds = parseInt(startMatch[1]);
+            }
+            let watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : iframeSrc;
+            if (videoId && seconds > 0) watchUrl += `&t=${seconds}s`;
+            return { videoId, seconds, watchUrl };
+        }
+
+        // Tampilkan Jawaban dan Video beserta Tombol YouTube
         function showAnswer() {
             document.getElementById('showAnswerBtn').style.display = 'none';
             document.getElementById('answerContainer').style.display = 'flex';
@@ -364,14 +441,33 @@
 
             let html = '';
             for (let i = 0; i < iframes.length; i++) {
-                html += `<div class="iframe-wrapper">${iframes[i].outerHTML}</div>`;
+                let src = iframes[i].getAttribute('src') || '';
+                let parsed = parseYoutubeData(src);
+
+                html += `
+                    <div class="video-item">
+                        <div class="iframe-wrapper">${iframes[i].outerHTML}</div>
+                        <div class="video-actions">
+                            <a class="action-btn" href="${parsed.watchUrl}" target="_blank" rel="noopener">
+                                ▶ Tonton di YouTube
+                            </a>
+                        </div>
+                    </div>
+                `;
             }
 
             document.getElementById('videoContainer').innerHTML = html;
         }
 
-        // Lanjut ke Kartu Berikutnya
+        // Evaluasi dan Lanjut ke Kartu Berikutnya
         function nextCard(isSuccess) {
+            if (!isSuccess) {
+                // Jika "Tidak" (Gagal): Selipkan kartu ini agar muncul lagi segera (setelah 2 pertanyaan)
+                const insertIndex = Math.min(deck.length, 2); 
+                deck.splice(insertIndex, 0, currentItem);
+            }
+            // Jika "Iya" (Berhasil): Kartu otomatis sudah terhapus dari tumpukan karena fungsi shift() sebelumnya.
+            
             loadNextQuestion();
         }
 
