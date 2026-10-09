@@ -425,6 +425,8 @@
         @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 40px; opacity: 1; } }
         @keyframes fadeout { from { bottom: 40px; opacity: 1; } to { bottom: 0; opacity: 0; } }
     </style>
+<!-- Pustaka Lottie Web Player -->
+<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.3.0/dist/dotlottie-wc.js" type="module"></script>
 </head>
 <body>
 
@@ -433,8 +435,20 @@
         <div class="top-header">
             <!-- Tautan Logo dan Judul -->
             <a href="index.html" class="brand-link" title="Kembali ke Beranda">
-                <video autoplay loop muted playsinline class="logo-video">
-                    <source src="logo-animasi.mp4" type="video/mp4">
+            <div class="top-header">
+    <!-- Tautan Logo dan Judul -->
+    <a href="index.html" class="brand-link" title="Kembali ke Beranda">
+        <!-- Komponen Lottie Animasi -->
+        <dotlottie-wc 
+            src="logo-animasi.json" 
+            autoplay 
+            loop 
+            style="width: 44px; height: 44px;">
+        </dotlottie-wc>
+        <h1>Kamus Bisindo</h1>
+    </a>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Ganti Tema">☀️</button>
+</div>
                 </video>
                 <h1>Kamus Bisindo</h1>
             </a>
