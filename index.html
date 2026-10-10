@@ -78,7 +78,6 @@
             transition: background 0.3s, color 0.3s;
         }
 
-        /* Container dibuat responsif tanpa garis tepi luar */
         .app-container {
             width: 100%;
             max-width: 800px;
@@ -87,7 +86,7 @@
             gap: 16px;
         }
 
-        /* Top Header - Diperbaiki agar sejajar */
+        /* Top Header */
         .top-header {
             background-color: var(--header-bg);
             border: 1.5px solid var(--border-color);
@@ -101,7 +100,6 @@
             min-height: 76px;
         }
 
-        /* Link Judul & Logo Animasi */
         .brand-link {
             display: inline-flex;
             align-items: center;
@@ -129,25 +127,6 @@
             border-radius: 50%;
             object-fit: cover;
             border: 1.5px solid var(--border-color);
-        }
-        
-        .theme-toggle {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--btn-bg);
-            border: 1.5px solid var(--border-color);
-            border-radius: 12px;
-            padding: 6px 10px;
-            font-size: 14px;
-            cursor: pointer;
-            color: var(--text-color);
-            transition: background 0.2s;
-        }
-        
-        .theme-toggle:hover {
-            background: var(--btn-hover);
         }
 
         /* Search Bar */
@@ -187,7 +166,7 @@
             justify-content: center;
         }
 
-        /* Navigasi Kotak Terpisah */
+        /* Navigasi Kotak */
         .main-nav-bar {
             display: flex;
             gap: 12px;
@@ -440,7 +419,7 @@
 <body>
 
     <div class="app-container">
-        <!-- Header Utama yang Sudah Dirapikan -->
+        <!-- Header Utama -->
         <div class="top-header">
             <a href="index.html" class="brand-link" title="Kembali ke Beranda">
                 <dotlottie-wc 
@@ -451,7 +430,6 @@
                 </dotlottie-wc>
                 <h1>Kamus Bisindo</h1>
             </a>
-            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Ganti Tema">☀️</button>
         </div>
 
         <!-- Search Bar -->
@@ -467,7 +445,7 @@
             <div class="main-nav-bar">
                 <button class="nav-btn" onclick="showToast('Fitur A-Z akan segera hadir')">A-Z</button>
                 <button class="nav-btn" onclick="showToast('Fitur Kategori akan segera hadir')">KATEGORI</button>
-                <button class="nav-btn" onclick="showToast('Fitur Contoh Kalimat akan segera hadir')">CONTOH KALIMAT</button>
+                <button class="nav-btn" onclick="showContohKalimat()">CONTOH KALIMAT</button>
                 <a href="tebak.html" class="nav-btn">TEBAK ISYARAT</a>
             </div>
 
@@ -506,7 +484,6 @@
             const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             applyTheme(prefersDark ? 'dark' : 'light');
 
-            // Deteksi perubahan tema sistem secara real-time
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
                 applyTheme(e.matches ? 'dark' : 'light');
             });
@@ -514,16 +491,17 @@
 
         function applyTheme(theme) {
             document.body.setAttribute('data-theme', theme);
-            document.getElementById('themeBtn').innerText = theme === 'dark' ? '☀️' : '🌙';
         }
 
-        function toggleTheme() {
-            const currentTheme = document.body.getAttribute('data-theme');
-            applyTheme(currentTheme === 'light' ? 'dark' : 'light');
-        }
-
-        // Panggil saat halaman dimuat
         initTheme();
+
+        // Fitur Tombol ESC untuk kembali ke beranda
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' || event.keyCode === 27) {
+                switchToHomeView();
+                document.getElementById('searchInput').blur(); // Tutup keyboard di HP
+            }
+        });
 
         // Variabel Data
         let dictionaryData = [];
@@ -566,7 +544,6 @@
             }
         });
 
-        // Isyarat Hari Ini
         function setupWordOfTheDay() {
             if (!dictionaryData || dictionaryData.length === 0) return;
             const today = new Date();
@@ -578,7 +555,6 @@
             container.appendChild(createCardNode(dictionaryData[dayIndex]));
         }
 
-        // Tampilan Mode
         function switchToSearchView() {
             if (!isSearchView) {
                 isSearchView = true;
@@ -597,7 +573,32 @@
             document.getElementById('resultsDiv').innerHTML = '<p class="status-msg">Ketik kata untuk mulai mencari...</p>';
         }
 
-        // Pencarian dan Pengurutan Pintar
+        // Fitur Tampilkan Contoh Kalimat
+        function showContohKalimat() {
+            switchToSearchView();
+            document.getElementById('searchInput').value = '';
+            
+            const resultsDiv = document.getElementById('resultsDiv');
+            resultsDiv.innerHTML = '<div class="section-title" style="margin-top:0; margin-bottom:16px;">Kumpulan Contoh Kalimat</div>';
+
+            let filtered = dictionaryData.filter(item => {
+                const text = item.word.trim();
+                // Kriteria kalimat: ada titik, tanya, atau lebih dari 2 kata spasi
+                return text.includes('?') || text.includes('.') || text.split(/\s+/).length > 2;
+            });
+
+            filtered.sort((a, b) => a.word.localeCompare(b.word));
+
+            if (filtered.length === 0) {
+                resultsDiv.innerHTML += '<p class="status-msg">Belum ada contoh kalimat yang ditemukan.</p>';
+                return;
+            }
+
+            filtered.forEach(item => {
+                resultsDiv.appendChild(createCardNode(item));
+            });
+        }
+
         function handleSearchInput() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const resultsDiv = document.getElementById('resultsDiv');
@@ -615,28 +616,24 @@
                 return;
             }
 
-            // Sistem Pengurutan (Sorting)
+            // Sistem Pengurutan
             filtered.sort((a, b) => {
                 const wordA = a.word.toLowerCase();
                 const wordB = b.word.toLowerCase();
                 
-                // Prioritas 1: Kata Sama Persis
                 if (wordA === query) return -1;
                 if (wordB === query) return 1;
                 
-                // Prioritas 2: Diawali kata tersebut (misal: "ibu mertua")
                 const startsA = wordA.startsWith(query + " ");
                 const startsB = wordB.startsWith(query + " ");
                 if (startsA && !startsB) return -1;
                 if (!startsA && startsB) return 1;
                 
-                // Prioritas 3: Diawali huruf tersebut (misal: "ibukota")
                 const startsPrefixA = wordA.startsWith(query);
                 const startsPrefixB = wordB.startsWith(query);
                 if (startsPrefixA && !startsPrefixB) return -1;
                 if (!startsPrefixA && startsPrefixB) return 1;
                 
-                // Prioritas 4: Sisanya diurutkan abjad
                 return wordA.localeCompare(wordB);
             });
 
@@ -706,11 +703,20 @@
 
             let html = '';
             for (let i = 0; i < iframes.length; i++) {
-                let label = iframes.length > 1 ? `ISYARAT ${i + 1}` : 'ISYARAT';
                 let src = iframes[i].getAttribute('src') || '';
+                
+                // Tambahkan API kontrol pemutar YouTube secara rahasia jika belum ada
+                if (src && !src.includes('enablejsapi=1')) {
+                    let separator = src.includes('?') ? '&' : '?';
+                    src += separator + 'enablejsapi=1';
+                    iframes[i].setAttribute('src', src);
+                }
+
+                let label = iframes.length > 1 ? `ISYARAT ${i + 1}` : 'ISYARAT';
                 let parsed = parseYoutubeData(src);
                 let timeFormatted = formatSeconds(parsed.seconds);
 
+                // Tambahkan Ikon Kura-kura untuk mode putar lambat
                 html += `
                     <div class="video-item">
                         <div class="video-label">${label}</div>
@@ -722,9 +728,12 @@
                                 🔗 Salin Tautan
                             </button>
                             <a class="action-btn" href="${parsed.watchUrl}" target="_blank" rel="noopener">
-                                ▶ Tonton di YouTube
+                                ▶ YouTube
                             </a>
-                            <button class="action-btn" onclick="let iframe = this.closest('.video-item').querySelector('iframe'); replayVideo(iframe, ${parsed.seconds});">
+                            <button class="action-btn" onclick="let iframe = this.closest('.video-item').querySelector('iframe'); replayVideo(iframe, ${parsed.seconds}, 0.5);" title="Putar Lambat 0.5x">
+                                🐢 Lambat
+                            </button>
+                            <button class="action-btn" onclick="let iframe = this.closest('.video-item').querySelector('iframe'); replayVideo(iframe, ${parsed.seconds}, 1);" title="Putar Normal">
                                 🔄 ${timeFormatted}
                             </button>
                         </div>
@@ -734,14 +743,29 @@
             bodyContainer.innerHTML = html;
         }
 
-        function replayVideo(iframeElement, seconds) {
+        function replayVideo(iframeElement, seconds, speed = 1) {
             if (!iframeElement) return;
-            let src = iframeElement.src.replace(/&amp;start=\d+/, '').replace(/\?start=\d+/, '');
+            
+            let src = iframeElement.src;
+            // Bersihkan sisa parameter lama agar iframe memuat dengan bersih
+            src = src.replace(/([?&])start=\d+/, '$1').replace(/([?&])autoplay=1/, '$1');
+            src = src.replace(/&&/g, '&').replace(/\?&/g, '?');
+            
             let separator = src.includes('?') ? '&' : '?';
             iframeElement.src = src + separator + 'start=' + seconds + '&autoplay=1';
+
+            // Fitur lambat dikirim ke YouTube API jika bukan kecepatan normal
+            if (speed !== 1) {
+                setTimeout(() => {
+                    iframeElement.contentWindow.postMessage(JSON.stringify({
+                        event: 'command',
+                        func: 'setPlaybackRate',
+                        args: [speed]
+                    }), '*');
+                }, 1500); // Tunggu video selesai dimuat
+            }
         }
 
-        // Salin Tautan
         function openShareModal(word, youtubeUrl) {
             currentShareWord = word;
             currentYoutubeUrl = youtubeUrl;
