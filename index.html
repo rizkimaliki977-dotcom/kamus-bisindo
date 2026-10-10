@@ -121,14 +121,6 @@
             margin: 0;
         }
 
-        .logo-video {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1.5px solid var(--border-color);
-        }
-
         /* Search Bar */
         .search-box {
             display: flex;
@@ -444,7 +436,7 @@
             <!-- Navigasi Kotak Terpisah -->
             <div class="main-nav-bar">
                 <button class="nav-btn" onclick="showToast('Fitur A-Z akan segera hadir')">A-Z</button>
-                <button class="nav-btn" onclick="showToast('Fitur Kategori akan segera hadir')">KATEGORI</button>
+                <a href="kategori.html" class="nav-btn">KATEGORI</a>
                 <button class="nav-btn" onclick="showContohKalimat()">CONTOH KALIMAT</button>
                 <a href="tebak.html" class="nav-btn">TEBAK ISYARAT</a>
             </div>
@@ -495,11 +487,11 @@
 
         initTheme();
 
-        // Fitur Tombol ESC untuk kembali ke beranda
+        // Fitur Tombol ESC
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape' || event.keyCode === 27) {
                 switchToHomeView();
-                document.getElementById('searchInput').blur(); // Tutup keyboard di HP
+                document.getElementById('searchInput').blur();
             }
         });
 
@@ -573,7 +565,6 @@
             document.getElementById('resultsDiv').innerHTML = '<p class="status-msg">Ketik kata untuk mulai mencari...</p>';
         }
 
-        // Fitur Tampilkan Contoh Kalimat
         function showContohKalimat() {
             switchToSearchView();
             document.getElementById('searchInput').value = '';
@@ -583,7 +574,6 @@
 
             let filtered = dictionaryData.filter(item => {
                 const text = item.word.trim();
-                // Kriteria kalimat: ada titik, tanya, atau lebih dari 2 kata spasi
                 return text.includes('?') || text.includes('.') || text.split(/\s+/).length > 2;
             });
 
@@ -616,7 +606,6 @@
                 return;
             }
 
-            // Sistem Pengurutan
             filtered.sort((a, b) => {
                 const wordA = a.word.toLowerCase();
                 const wordB = b.word.toLowerCase();
@@ -705,7 +694,6 @@
             for (let i = 0; i < iframes.length; i++) {
                 let src = iframes[i].getAttribute('src') || '';
                 
-                // Tambahkan API kontrol pemutar YouTube secara rahasia jika belum ada
                 if (src && !src.includes('enablejsapi=1')) {
                     let separator = src.includes('?') ? '&' : '?';
                     src += separator + 'enablejsapi=1';
@@ -716,7 +704,6 @@
                 let parsed = parseYoutubeData(src);
                 let timeFormatted = formatSeconds(parsed.seconds);
 
-                // Tambahkan Ikon Kura-kura untuk mode putar lambat
                 html += `
                     <div class="video-item">
                         <div class="video-label">${label}</div>
@@ -747,14 +734,12 @@
             if (!iframeElement) return;
             
             let src = iframeElement.src;
-            // Bersihkan sisa parameter lama agar iframe memuat dengan bersih
             src = src.replace(/([?&])start=\d+/, '$1').replace(/([?&])autoplay=1/, '$1');
             src = src.replace(/&&/g, '&').replace(/\?&/g, '?');
             
             let separator = src.includes('?') ? '&' : '?';
             iframeElement.src = src + separator + 'start=' + seconds + '&autoplay=1';
 
-            // Fitur lambat dikirim ke YouTube API jika bukan kecepatan normal
             if (speed !== 1) {
                 setTimeout(() => {
                     iframeElement.contentWindow.postMessage(JSON.stringify({
@@ -762,7 +747,7 @@
                         func: 'setPlaybackRate',
                         args: [speed]
                     }), '*');
-                }, 1500); // Tunggu video selesai dimuat
+                }, 1500); 
             }
         }
 
