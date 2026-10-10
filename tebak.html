@@ -1,36 +1,16 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-    <!-- Meta Deskripsi Utama -->
-<meta name="description" content="Kamus Bahasa Isyarat Indonesia (Bisindo) interaktif online lengkap dengan video YouTube, timestamp, dan fitur tebak isyarat gratis.">
-<meta name="keywords" content="kamus bisindo, bahasa isyarat indonesia, belajar bisindo, isyarat indonesia, tebak isyarat">
-
-<!-- Open Graph untuk Tampilan Preview di WhatsApp & Media Sosial -->
-    <meta property="og:title" content="Kamus Bahasa Isyarat Indonesia (Bisindo)">
-    <meta property="og:description" content="Cari kosakata dan pelajari bahasa isyarat Indonesia secara interaktif dan gratis.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://rizkimaliki977-dotcom.github.io/kamus-bisindo/">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tebak Isyarat - Kamus Bisindo</title>
-  <!-- PWA Manifest -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1a1a1a">
-<!-- Favicon untuk Tab Browser -->
-<link rel="icon" type="image/png" href="icon.png">
-
-<!-- Ikon saat disimpan ke Layar Utama HP (iOS & Android) -->
-<link rel="apple-touch-icon" href="icon.png">
-<!-- PWA Service Worker Script -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log('PWA Service Worker Aktif'))
-        .catch(err => console.log('Gagal mendaftarkan Service Worker:', err));
-    });
-  }
-</script>
+    
+    <!-- PWA & Favicon -->
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a1a">
+    
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -44,6 +24,7 @@
             --subtext-color: #6c757d;
             --accent-green: #2ecc71;
             --accent-red: #e74c3c;
+            --accent-blue: #3498db;
         }
 
         [data-theme="dark"] {
@@ -56,249 +37,66 @@
             --btn-hover: #3a3a3a;
             --shadow: rgba(0,0,0,0.3);
             --subtext-color: #aaaaaa;
+            --accent-blue: #2980b9;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background-color: var(--bg-color); 
-            color: var(--text-color); 
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 16px;
+            background-color: var(--bg-color); color: var(--text-color); 
+            display: flex; justify-content: center; min-height: 100vh; padding: 16px;
             transition: background 0.3s, color 0.3s;
         }
 
-        .app-container {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+        .app-container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 16px; }
 
         /* Navigasi Atas */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .top-bar { display: flex; align-items: center; justify-content: space-between; background-color: var(--header-bg); border: 1.5px solid var(--border-color); border-radius: 16px; padding: 14px 16px; box-shadow: 0 2px 10px var(--shadow); }
+        .back-btn { display: inline-flex; align-items: center; background-color: var(--btn-bg); border: 1.5px solid var(--border-color); border-radius: 12px; padding: 8px 14px; font-size: 14px; font-weight: 700; color: var(--text-color); cursor: pointer; text-decoration: none; box-shadow: 0 2px 6px var(--shadow); transition: background 0.2s; }
+        .back-btn:hover { background-color: var(--btn-hover); }
+        .page-title { font-size: 16px; font-weight: 700; margin: 0; }
 
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background-color: var(--card-bg);
-            border: 1.5px solid var(--border-color);
-            border-radius: 12px;
-            padding: 8px 14px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-color);
-            text-decoration: none;
-            box-shadow: 0 2px 6px var(--shadow);
-            transition: background 0.2s;
-        }
+        /* Tampilan Menu Kategori (Setup) */
+        #setupView { display: flex; flex-direction: column; gap: 16px; }
+        .resume-card { background-color: rgba(52, 152, 219, 0.1); border: 2px solid var(--accent-blue); border-radius: 16px; padding: 20px; text-align: center; display: none; flex-direction: column; gap: 12px; }
+        .resume-title { font-size: 16px; font-weight: 700; color: var(--text-color); }
+        .resume-btn { background-color: var(--accent-blue); color: #fff; border: none; border-radius: 12px; padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: transform 0.2s; }
+        .resume-btn:hover { transform: translateY(-2px); }
 
-        .back-btn:hover {
-            background-color: var(--btn-hover);
-        }
+        .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        .cat-btn { background-color: var(--card-bg); border: 1.5px solid var(--border-color); border-radius: 16px; padding: 20px 16px; text-align: center; font-size: 14px; font-weight: 700; color: var(--text-color); cursor: pointer; box-shadow: 0 4px 12px var(--shadow); transition: transform 0.2s; display: flex; flex-direction: column; gap: 8px; align-items: center; text-transform: uppercase; }
+        .cat-btn:hover { transform: translateY(-3px); }
+        .cat-count { font-size: 12px; color: var(--subtext-color); font-weight: 600; background: var(--bg-color); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .cat-btn.all { border-color: var(--accent-green); background-color: rgba(46, 204, 113, 0.05); }
 
-        .theme-toggle {
-            background: var(--card-bg);
-            border: 1.5px solid var(--border-color);
-            border-radius: 12px;
-            padding: 8px 12px;
-            font-size: 14px;
-            cursor: pointer;
-            color: var(--text-color);
-            box-shadow: 0 2px 6px var(--shadow);
-        }
-
-        /* Kartu Flashcard Utama */
-        .flashcard {
-            background-color: var(--card-bg);
-            border: 1.5px solid var(--border-color);
-            border-radius: 20px;
-            padding: 24px 20px;
-            text-align: center;
-            box-shadow: 0 4px 16px var(--shadow);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            min-height: 280px;
-            justify-content: center;
-        }
-
-        .card-label {
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--subtext-color);
-        }
-
-        .word-prompt {
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--text-color);
-            text-transform: uppercase;
-            letter-spacing: -0.5px;
-            margin: 10px 0;
-        }
-
-        .main-action-btn {
-            background-color: var(--btn-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 14px;
-            padding: 14px 28px;
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-color);
-            cursor: pointer;
-            box-shadow: 0 2px 8px var(--shadow);
-            transition: transform 0.2s, background 0.2s;
-        }
-
-        .main-action-btn:hover {
-            background-color: var(--btn-hover);
-            transform: translateY(-2px);
-        }
-
-        /* Kontainer Jawaban & Video */
-        .answer-container {
-            display: none;
-            width: 100%;
-            flex-direction: column;
-            gap: 16px;
-            margin-top: 10px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 20px;
-        }
-
-        .video-item {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .iframe-wrapper {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-            background-color: #000;
-        }
-
-        .iframe-wrapper iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .video-actions {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .action-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background-color: var(--btn-bg);
-            border: 1.5px solid var(--border-color);
-            border-radius: 20px;
-            padding: 8px 14px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-color);
-            cursor: pointer;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-
-        .action-btn:hover {
-            background-color: var(--btn-hover);
-        }
-
-        /* Bagian Evaluasi */
-        .eval-section {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .eval-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-color);
-        }
-
-        .eval-buttons {
-            display: flex;
-            gap: 12px;
-            width: 100%;
-            max-width: 320px;
-        }
-
-        .eval-btn {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px;
-            font-size: 15px;
-            font-weight: 700;
-            border-radius: 12px;
-            border: 1.5px solid var(--border-color);
-            background-color: var(--btn-bg);
-            color: var(--text-color);
-            cursor: pointer;
-            transition: transform 0.2s, background 0.2s;
-        }
-
-        .eval-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .eval-btn.yes:hover {
-            background-color: rgba(46, 204, 113, 0.15);
-            border-color: var(--accent-green);
-            color: var(--accent-green);
-        }
-
-        .eval-btn.no:hover {
-            background-color: rgba(231, 76, 60, 0.15);
-            border-color: var(--accent-red);
-            color: var(--accent-red);
-        }
-
-        .status-msg {
-            color: var(--subtext-color);
-            font-size: 15px;
-            font-style: italic;
-        }
+        /* Tampilan Flashcard (Permainan) */
+        #gameView { display: none; flex-direction: column; gap: 16px; }
+        .flashcard { background-color: var(--card-bg); border: 1.5px solid var(--border-color); border-radius: 20px; padding: 24px 20px; text-align: center; box-shadow: 0 4px 16px var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 20px; min-height: 280px; justify-content: center; }
+        .card-label { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--subtext-color); display: flex; flex-direction: column; gap: 4px; }
+        .deck-stats { font-size: 11px; font-weight: 600; color: var(--accent-blue); }
+        .word-prompt { font-size: 32px; font-weight: 800; color: var(--text-color); text-transform: uppercase; letter-spacing: -0.5px; margin: 10px 0; }
         
-        /* Informasi Statistik (Sisa Kartu) */
-        .deck-stats {
-            font-size: 12px;
-            color: var(--subtext-color);
-            margin-top: -10px;
-        }
+        .main-action-btn { background-color: var(--btn-bg); border: 2px solid var(--border-color); border-radius: 14px; padding: 14px 28px; font-size: 15px; font-weight: 700; color: var(--text-color); cursor: pointer; box-shadow: 0 2px 8px var(--shadow); transition: transform 0.2s; }
+        .main-action-btn:hover { transform: translateY(-2px); }
+
+        .answer-container { display: none; width: 100%; flex-direction: column; gap: 16px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .video-item { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+        .iframe-wrapper { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); background-color: #000; }
+        .iframe-wrapper iframe { width: 100%; height: 100%; border: none; }
+        
+        .video-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; background-color: var(--btn-bg); border: 1.5px solid var(--border-color); border-radius: 20px; padding: 8px 14px; font-size: 12px; font-weight: 600; color: var(--text-color); cursor: pointer; text-decoration: none; }
+        
+        .eval-section { display: none; flex-direction: column; align-items: center; gap: 12px; width: 100%; margin-top: 10px; }
+        .eval-title { font-size: 15px; font-weight: 600; color: var(--text-color); }
+        .eval-buttons { display: flex; gap: 12px; width: 100%; max-width: 320px; }
+        .eval-btn { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border-radius: 12px; border: 1.5px solid var(--border-color); background-color: var(--btn-bg); color: var(--text-color); cursor: pointer; transition: transform 0.2s; }
+        .eval-btn:hover { transform: translateY(-2px); }
+        .eval-btn.yes:hover { background-color: rgba(46, 204, 113, 0.15); border-color: var(--accent-green); color: var(--accent-green); }
+        .eval-btn.no:hover { background-color: rgba(231, 76, 60, 0.15); border-color: var(--accent-red); color: var(--accent-red); }
+        
+        .status-msg { color: var(--subtext-color); font-size: 15px; font-style: italic; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
@@ -306,36 +104,57 @@
     <div class="app-container">
         <!-- Navigasi Atas -->
         <div class="top-bar">
-            <a href="index.html" class="back-btn">← Kembali ke Kamus</a>
-            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">☀️</button>
+            <button class="back-btn" id="navBackBtn" onclick="handleBack()">← Ke Kamus</button>
+            <h1 class="page-title">Tebak Isyarat</h1>
+            <div style="width: 70px;"></div> <!-- Spacer -->
         </div>
 
-        <!-- Kartu Flashcard -->
-        <div class="flashcard">
-            <div class="card-label">Tebak Isyarat</div>
+        <!-- LAYAR MENU KATEGORI -->
+        <div id="setupView">
             
-            <div id="cardContent">
-                <p class="status-msg">Memuat data isyarat...</p>
-            </div>
-            
-            <div class="deck-stats" id="deckStats"></div>
-
-            <!-- Tombol Tampilkan Jawaban -->
-            <button id="showAnswerBtn" class="main-action-btn" style="display: none;" onclick="showAnswer()">
-                👁️ Tampilkan Jawaban
-            </button>
-
-            <!-- Tempat Video Jawaban -->
-            <div id="answerContainer" class="answer-container">
-                <div id="videoContainer"></div>
+            <div class="resume-card" id="resumeCard">
+                <div class="resume-title" id="resumeText">Lanjutkan sesi yang tertunda?</div>
+                <button class="resume-btn" onclick="continueSession()">▶ Lanjutkan Sesi</button>
+                <button class="back-btn" style="border:none; box-shadow:none; font-size:12px; text-decoration:underline;" onclick="clearSessionAndShowMenu()">Atau mulai sesi baru</button>
             </div>
 
-            <!-- Bagian Evaluasi -->
-            <div id="evalSection" class="eval-section">
-                <div class="eval-title">Apa kamu berhasil menebak isyaratnya?</div>
-                <div class="eval-buttons">
-                    <button class="eval-btn no" onclick="nextCard(false)">👎 Tidak</button>
-                    <button class="eval-btn yes" onclick="nextCard(true)">👍 Iya</button>
+            <p class="status-msg" id="loadingMsg">Memuat data...</p>
+            
+            <div id="categoryContainer" style="display: none;">
+                <h3 style="font-size: 15px; margin-bottom: 12px; text-align: center;">Pilih Kategori untuk Ditebak:</h3>
+                <div class="category-grid" id="categoryGrid"></div>
+            </div>
+        </div>
+
+        <!-- LAYAR PERMAINAN (FLASHCARD) -->
+        <div id="gameView">
+            <div class="flashcard">
+                <div class="card-label">
+                    <span id="currentCatLabel">Semua Isyarat</span>
+                    <span class="deck-stats" id="deckStats">Sisa kartu: 0</span>
+                </div>
+                
+                <div id="cardContent">
+                    <p class="status-msg">Menyiapkan kartu...</p>
+                </div>
+
+                <!-- Tombol Jawaban -->
+                <button id="showAnswerBtn" class="main-action-btn" style="display: none;" onclick="showAnswer()">
+                    👁️ Tampilkan Jawaban
+                </button>
+
+                <!-- Video Jawaban -->
+                <div id="answerContainer" class="answer-container">
+                    <div id="videoContainer"></div>
+                </div>
+
+                <!-- Evaluasi -->
+                <div id="evalSection" class="eval-section">
+                    <div class="eval-title">Apa kamu berhasil menebak isyaratnya?</div>
+                    <div class="eval-buttons">
+                        <button class="eval-btn no" onclick="nextCard(false)">👎 Tidak</button>
+                        <button class="eval-btn yes" onclick="nextCard(true)">👍 Iya</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -346,39 +165,32 @@
         // Tema Sistem
         function initTheme() {
             const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            applyTheme(prefersDark ? 'dark' : 'light');
-
+            document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                applyTheme(e.matches ? 'dark' : 'light');
+                document.body.setAttribute('data-theme', e.matches ? 'dark' : 'light');
             });
         }
-
-        function applyTheme(theme) {
-            document.body.setAttribute('data-theme', theme);
-            document.getElementById('themeBtn').innerText = theme === 'dark' ? '☀️' : '🌙';
-        }
-
-        function toggleTheme() {
-            const currentTheme = document.body.getAttribute('data-theme');
-            applyTheme(currentTheme === 'light' ? 'dark' : 'light');
-        }
-
         initTheme();
 
-        // Data & Status Flashcard (Sistem Anki / Spaced Repetition)
+        // Fitur Tombol ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' || event.keyCode === 27) {
+                handleBack();
+            }
+        });
+
+        // Konstanta & Variabel
+        const STORAGE_KEY = 'bisindo_tebak_state';
         let dictionaryData = [];
-        let deck = []; // Tumpukan kartu saat ini
+        let categoriesMap = {};
+        
+        // Status Permainan
+        let isPlaying = false;
+        let deck = [];
         let currentItem = null;
+        let currentCategoryLabel = '';
         
         const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx8Kb-ezyZdVw46ruREAydDcWtquytEFrWomKc9zdMgOG0dGbElZz8NmVDMGpvgSJmY9fSDV18LVty/pub?output=csv';
-
-        // Fungsi Mengacak Array (Fisher-Yates Shuffle)
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
 
         // Load Data Google Sheets
         Papa.parse(sheetCsvUrl, {
@@ -390,42 +202,166 @@
                     dictionaryData = results.data
                         .filter(row => row && row.length > 0 && row[0] && row[0].trim() !== "" && row[1] && row[1].includes('<iframe'))
                         .map(row => {
-                            return {
-                                word: row[0].trim(),
-                                rawHtml: row[1].trim()
-                            };
+                            let cat = (row.length > 2 && row[2] && row[2].trim() !== "") ? row[2].trim() : "Lainnya";
+                            return { word: row[0].trim(), rawHtml: row[1].trim(), category: cat };
                         });
                     
                     if (dictionaryData.length > 0) {
-                        // Persiapkan Tumpukan Kartu
-                        deck = [...dictionaryData];
-                        shuffleArray(deck);
-                        loadNextQuestion();
+                        processCategories();
+                        checkSavedSession();
                     } else {
-                        document.getElementById('cardContent').innerHTML = '<p class="status-msg">Tidak ada data video yang ditemukan.</p>';
+                        document.getElementById('loadingMsg').innerText = 'Tidak ada data video yang ditemukan.';
                     }
                 } catch (e) {
-                    document.getElementById('cardContent').innerHTML = '<p class="status-msg">Gagal memproses data kamus.</p>';
+                    document.getElementById('loadingMsg').innerText = 'Gagal memproses data kamus.';
                 }
             },
             error: function() {
-                document.getElementById('cardContent').innerHTML = '<p class="status-msg">Gagal mengunduh data dari Google Sheets.</p>';
+                document.getElementById('loadingMsg').innerText = 'Gagal mengunduh data dari Google Sheets.';
             }
         });
 
-        // Ambil Kartu Paling Atas dari Tumpukan
+        function processCategories() {
+            categoriesMap = {};
+            dictionaryData.forEach(item => {
+                if (!categoriesMap[item.category]) categoriesMap[item.category] = [];
+                categoriesMap[item.category].push(item);
+            });
+            document.getElementById('loadingMsg').style.display = 'none';
+            document.getElementById('categoryContainer').style.display = 'block';
+            renderCategoryMenu();
+        }
+
+        function renderCategoryMenu() {
+            const grid = document.getElementById('categoryGrid');
+            grid.innerHTML = '';
+
+            // Tombol Semua Isyarat
+            const btnAll = document.createElement('div');
+            btnAll.className = 'cat-btn all';
+            btnAll.innerHTML = `<span>Semua Isyarat</span><div class="cat-count">${dictionaryData.length} Isyarat</div>`;
+            btnAll.onclick = () => startNewSession('Semua Isyarat', dictionaryData);
+            grid.appendChild(btnAll);
+
+            // Tombol per Kategori
+            const catNames = Object.keys(categoriesMap).sort((a, b) => {
+                if (a === "Lainnya") return 1; if (b === "Lainnya") return -1;
+                return a.localeCompare(b);
+            });
+
+            catNames.forEach(catName => {
+                const count = categoriesMap[catName].length;
+                const btn = document.createElement('div');
+                btn.className = 'cat-btn';
+                btn.innerHTML = `<span>${escapeHtml(catName)}</span><div class="cat-count">${count} Isyarat</div>`;
+                btn.onclick = () => startNewSession(catName, categoriesMap[catName]);
+                grid.appendChild(btn);
+            });
+        }
+
+        // ==========================================
+        // SISTEM LOCAL STORAGE (SIMPAN PROGRES)
+        // ==========================================
+        function checkSavedSession() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                const state = JSON.parse(savedData);
+                // Pastikan ada sisa kartu di tumpukan atau ada item yang sedang terbuka
+                if (state.currentItem || (state.deck && state.deck.length > 0)) {
+                    document.getElementById('resumeCard').style.display = 'flex';
+                    document.getElementById('categoryContainer').style.display = 'none';
+                    
+                    let totalSisa = state.deck.length;
+                    if(state.currentItem) totalSisa += 1;
+                    
+                    document.getElementById('resumeText').innerText = `Lanjutkan sesi "${state.categoryLabel}"? (Sisa ${totalSisa} isyarat)`;
+                }
+            }
+        }
+
+        function continueSession() {
+            const state = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            deck = state.deck || [];
+            currentItem = state.currentItem;
+            currentCategoryLabel = state.categoryLabel;
+            
+            switchToGameView();
+            renderCurrentCard(); // Tampilkan kartu yang tersimpan
+        }
+
+        function clearSessionAndShowMenu() {
+            localStorage.removeItem(STORAGE_KEY);
+            document.getElementById('resumeCard').style.display = 'none';
+            document.getElementById('categoryContainer').style.display = 'block';
+        }
+
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                deck: deck,
+                currentItem: currentItem,
+                categoryLabel: currentCategoryLabel
+            }));
+        }
+
+        // ==========================================
+        // LOGIKA PERMAINAN (FLASHCARD)
+        // ==========================================
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startNewSession(categoryName, dataArray) {
+            deck = [...dataArray];
+            shuffleArray(deck);
+            currentCategoryLabel = categoryName;
+            
+            switchToGameView();
+            loadNextQuestion(); // Ambil kartu pertama
+        }
+
+        function switchToGameView() {
+            isPlaying = true;
+            document.getElementById('setupView').style.display = 'none';
+            document.getElementById('gameView').style.display = 'flex';
+            document.getElementById('currentCatLabel').innerText = currentCategoryLabel;
+            document.getElementById('navBackBtn').innerText = '← Menu Kategori';
+        }
+
+        function handleBack() {
+            if (isPlaying) {
+                // Jika sedang main, kembali ke menu kategori tanpa menghapus save
+                isPlaying = false;
+                document.getElementById('gameView').style.display = 'none';
+                document.getElementById('setupView').style.display = 'flex';
+                document.getElementById('navBackBtn').innerText = '← Ke Kamus';
+                checkSavedSession(); // Refresh tampilan tombol Lanjutkan
+            } else {
+                // Jika di menu kategori, kembali ke halaman utama kamus
+                window.location.href = 'index.html';
+            }
+        }
+
         function loadNextQuestion() {
-            // Jika tumpukan habis, isi ulang dan acak lagi
-            if (deck.length === 0) {
-                deck = [...dictionaryData];
-                shuffleArray(deck);
-                alert("Hebat! Anda telah menyelesaikan seluruh tebakan. Kartu akan diacak ulang.");
+            if (deck.length === 0 && !currentItem) {
+                alert("Luar biasa! Anda telah berhasil menghafal seluruh isyarat di kategori ini.");
+                localStorage.removeItem(STORAGE_KEY);
+                handleBack();
+                return;
             }
 
-            currentItem = deck.shift(); // Ambil 1 kartu dari paling depan
+            currentItem = deck.shift();
+            saveState(); // Simpan progres setelah menarik kartu dari deck
+            renderCurrentCard();
+        }
 
+        function renderCurrentCard() {
+            if (!currentItem) return;
+
+            document.getElementById('deckStats').innerText = `Sisa tumpukan: ${deck.length}`;
             document.getElementById('cardContent').innerHTML = `<div class="word-prompt">${escapeHtml(currentItem.word)}</div>`;
-            document.getElementById('deckStats').innerText = `Sisa kartu di tumpukan: ${deck.length}`;
             
             document.getElementById('showAnswerBtn').style.display = 'inline-block';
             document.getElementById('answerContainer').style.display = 'none';
@@ -433,7 +369,9 @@
             document.getElementById('videoContainer').innerHTML = '';
         }
 
-        // Parsing Data YouTube untuk Tombol Link
+        // ==========================================
+        // RENDER VIDEO & JAWABAN
+        // ==========================================
         function parseYoutubeData(iframeSrc) {
             let videoId = null, seconds = 0;
             if (iframeSrc) {
@@ -447,7 +385,6 @@
             return { videoId, seconds, watchUrl };
         }
 
-        // Tampilkan Jawaban dan Video beserta Tombol YouTube
         function showAnswer() {
             document.getElementById('showAnswerBtn').style.display = 'none';
             document.getElementById('answerContainer').style.display = 'flex';
@@ -460,38 +397,64 @@
             let html = '';
             for (let i = 0; i < iframes.length; i++) {
                 let src = iframes[i].getAttribute('src') || '';
-                let parsed = parseYoutubeData(src);
+                
+                if (src && !src.includes('enablejsapi=1')) {
+                    let separator = src.includes('?') ? '&' : '?';
+                    src += separator + 'enablejsapi=1';
+                    iframes[i].setAttribute('src', src);
+                }
 
+                let parsed = parseYoutubeData(src);
                 html += `
                     <div class="video-item">
                         <div class="iframe-wrapper">${iframes[i].outerHTML}</div>
                         <div class="video-actions">
-                            <a class="action-btn" href="${parsed.watchUrl}" target="_blank" rel="noopener">
-                                ▶ Tonton di YouTube
-                            </a>
+                            <a class="action-btn" href="${parsed.watchUrl}" target="_blank" rel="noopener">▶ YouTube</a>
+                            <button class="action-btn" onclick="let iframe = this.closest('.video-item').querySelector('iframe'); replayVideo(iframe, ${parsed.seconds}, 0.5);" title="Putar Lambat 0.5x">🐢 Lambat</button>
+                            <button class="action-btn" onclick="let iframe = this.closest('.video-item').querySelector('iframe'); replayVideo(iframe, ${parsed.seconds}, 1);">🔄 Ulang</button>
                         </div>
                     </div>
                 `;
             }
-
             document.getElementById('videoContainer').innerHTML = html;
         }
 
-        // Evaluasi dan Lanjut ke Kartu Berikutnya
+        function replayVideo(iframeElement, seconds, speed = 1) {
+            if (!iframeElement) return;
+            let src = iframeElement.src;
+            src = src.replace(/([?&])start=\d+/, '$1').replace(/([?&])autoplay=1/, '$1');
+            src = src.replace(/&&/g, '&').replace(/\?&/g, '?');
+            let separator = src.includes('?') ? '&' : '?';
+            iframeElement.src = src + separator + 'start=' + seconds + '&autoplay=1';
+
+            if (speed !== 1) {
+                setTimeout(() => {
+                    iframeElement.contentWindow.postMessage(JSON.stringify({
+                        event: 'command', func: 'setPlaybackRate', args: [speed]
+                    }), '*');
+                }, 1500); 
+            }
+        }
+
+        // ==========================================
+        // EVALUASI JAWABAN
+        // ==========================================
         function nextCard(isSuccess) {
             if (!isSuccess) {
-                // Jika "Tidak" (Gagal): Selipkan kartu ini agar muncul lagi segera (setelah 2 pertanyaan)
+                // Gagal: Selipkan kembali ke tumpukan atas
                 const insertIndex = Math.min(deck.length, 2); 
                 deck.splice(insertIndex, 0, currentItem);
             }
-            // Jika "Iya" (Berhasil): Kartu otomatis sudah terhapus dari tumpukan karena fungsi shift() sebelumnya.
             
+            // Bersihkan item saat ini (karena sudah dievaluasi)
+            currentItem = null; 
+            saveState(); // Simpan struktur deck terbaru
+
+            // Ambil pertanyaan berikutnya
             loadNextQuestion();
         }
 
-        function escapeHtml(str) { 
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); 
-        }
+        function escapeHtml(str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
     </script>
 </body>
 </html>
