@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamus A-Z - Bisindo</title>
+    
+    <!-- PWA & Favicon -->
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a1a">
+
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #1a1a1a;
+            --header-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --card-bg: #ffffff;
+            --btn-bg: #ffffff;
+            --btn-hover: #f1f3f5;
+            --shadow: rgba(0,0,0,0.05);
+            --subtext-color: #6c757d;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #f0f0f0;
+            --header-bg: #1e1e1e;
+            --border-color: #333333;
+            --card-bg: #1e1e1e;
+            --btn-bg: #2d2d2d;
+            --btn-hover: #3a3a3a;
+            --shadow: rgba(0,0,0,0.3);
+            --subtext-color: #aaaaaa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 16px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Navigasi Atas */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            background-color: var(--header-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 16px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 10px var(--shadow);
+            gap: 16px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--btn-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px 14px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-color);
+            cursor: pointer;
+            box-shadow: 0 2px 6px var(--shadow);
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background-color: var(--btn-hover);
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+            padding-right: 40px; 
+        }
+
+        /* Grid Abjad A-Z */
+        .alphabet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .alpha-btn {
+            background-color: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px 8px;
+            text-align: center;
+            color: var(--text-color);
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--shadow);
+            transition: transform 0.2s, background 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .alpha-btn:hover:not(.empty) {
+            background-color: var(--btn-hover);
+            transform: translateY(-3px);
+        }
+
+        .alpha-btn.empty {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+            background-color: transparent;
+        }
+
+        .letter {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .count {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--subtext-color);
+            background: var(--bg-color);
+            padding: 2px 8px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Card Isyarat */
+        .word-card {
+            border: 1.5px solid var(--border-color);
+            border-radius: 16px;
+            background-color: var(--card-bg);
+            margin-bottom: 14px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .card-header-btn {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 18px;
+            font-weight: 700;
+            text-align: left;
+            transition: background 0.2s;
+        }
+
+        .card-header-btn:hover { background-color: var(--btn-hover); }
+        .arrow-icon { font-size: 14px; transition: transform 0.3s; }
+        .card-header-btn.active .arrow-icon { transform: rotate(180deg); }
+        .card-body { display: none; padding: 16px; border-top: 1px solid var(--border-color); background-color: var(--bg-color); }
+
+        /* Video Container */
+        .video-item { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .video-item:last-child { margin-bottom: 0; }
+        .video-label { font-size: 12px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-color); }
+        .iframe-container { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); background-color: #000; }
+        .iframe-container iframe { width: 100%; height: 100%; border: none; }
+        .action-buttons { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 4px; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; background-color: var(--btn-bg); border: 1.5px solid var(--border-color); border-radius: 20px; padding: 8px 14px; font-size: 12px; font-weight: 600; color: var(--text-color); cursor: pointer; text-decoration: none; transition: background 0.2s; }
+        .action-btn:hover { background-color: var(--btn-hover); }
+
+        .status-msg { text-align: center; color: var(--subtext-color); font-size: 15px; padding: 30px 0; font-style: italic; }
+
+        /* Modal & Toast */
+        .modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background-color: var(--card-bg); border: 1.5px solid var(--border-color); border-radius: 20px; padding: 24px; width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 12px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal-content h3 { font-size: 18px; color: var(--text-color); margin-bottom: 4px; }
+        .modal-btn { background-color: var(--btn-bg); border: 1.5px solid var(--border-color); border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 600; color: var(--text-color); cursor: pointer; }
+        .modal-btn.cancel { background-color: transparent; border-color: transparent; color: #e74c3c; margin-top: 4px; }
+        #toast { visibility: hidden; min-width: 240px; background-color: #333333; color: #ffffff; text-align: center; border-radius: 25px; padding: 12px 20px; position: fixed; z-index: 3000; left: 50%; bottom: 40px; transform: translateX(-50%); font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        #toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 2.5s; }
+        @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 40px; opacity: 1; } }
+        @keyframes fadeout { from { bottom: 40px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Navigasi Atas -->
+        <div class="top-bar">
+            <button class="back-btn" onclick="goBack()">← Kembali</button>
+            <h1 class="page-title" id="pageTitle">Kamus A-Z</h1>
+        </div>
+
+        <!-- Tampilan Daftar Abjad (Grid) -->
+        <div id="alphabetGridView">
+            <p class="status-msg" id="loadingMsg">Memuat daftar isyarat...</p>
+            <div class="alphabet-grid" id="alphabetGrid"></div>
+        </div>
+
+        <!-- Tampilan Hasil Kata per Huruf -->
+        <div id="alphabetResultsView" style="display: none;">
+            <div id="resultsDiv"></div>
+        </div>
+    </div>
+
+    <!-- Modal Dialog -->
+    <div id="shareModal" class="modal-backdrop" onclick="if(event.target===this) closeShareModal()">
+        <div class="modal-content">
+            <h3>Salin Tautan</h3>
+            <button class="modal-btn" onclick="copyKamusLink()">📋 Salin Link Halaman Kamus</button>
+            <button class="modal-btn" onclick="copyYoutubeLink()">▶ Salin Link Video YouTube</button>
+            <button class="modal-btn cancel" onclick="closeShareModal()">Batal</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast">Tautan berhasil disalin!</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script>
+        // Tema Sistem
+        function initTheme() {
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                document.body.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+            });
+        }
+        initTheme();
+
+        // Fitur Tombol ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' || event.keyCode === 27) {
+                goBack();
+            }
+        });
+
+        let dictionaryData = [];
+        let alphabetMap = {}; 
+        let currentView = 'alphabet';
+        let currentShareWord = '';
+        let currentYoutubeUrl = '';
+        
+        const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx8Kb-ezyZdVw46ruREAydDcWtquytEFrWomKc9zdMgOG0dGbElZz8NmVDMGpvgSJmY9fSDV18LVty/pub?output=csv';
+
+        // Daftar Huruf A-Z
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+        function goBack() {
+            if (currentView === 'results') {
+                document.getElementById('alphabetResultsView').style.display = 'none';
+                document.getElementById('alphabetGridView').style.display = 'block';
+                document.getElementById('pageTitle').innerText = 'Kamus A-Z';
+                currentView = 'alphabet';
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Proses Data
+        Papa.parse(sheetCsvUrl, {
+            download: true,
+            header: false,
+            skipEmptyLines: true,
+            complete: function(results) {
+                try {
+                    dictionaryData = results.data
+                        .filter(row => row && row.length > 0 && row[0] && row[0].trim() !== "")
+                        .map(row => {
+                            return {
+                                word: row[0].trim(),
+                                rawHtml: (row.length > 1 && row[1]) ? row[1].trim() : ""
+                            };
+                        });
+                    
+                    processAlphabet();
+                } catch (e) {
+                    document.getElementById('loadingMsg').innerText = 'Gagal memproses data kamus.';
+                }
+            },
+            error: function() {
+                document.getElementById('loadingMsg').innerText = 'Gagal mengunduh data dari Google Sheets.';
+            }
+        });
+
+        function processAlphabet() {
+            // Siapkan wadah untuk setiap huruf
+            alphabet.forEach(letter => alphabetMap[letter] = []);
+            alphabetMap['#'] = []; // Untuk kata yang berawalan angka/simbol
+
+            dictionaryData.forEach(item => {
+                let firstChar = item.word.charAt(0).toUpperCase();
+                if (alphabet.includes(firstChar)) {
+                    alphabetMap[firstChar].push(item);
+                } else {
+                    alphabetMap['#'].push(item);
+                }
+            });
+
+            document.getElementById('loadingMsg').style.display = 'none';
+            const grid = document.getElementById('alphabetGrid');
+            grid.innerHTML = '';
+
+            // Render Tombol A-Z
+            alphabet.forEach(letter => {
+                const count = alphabetMap[letter].length;
+                const btn = document.createElement('button');
+                btn.className = count > 0 ? 'alpha-btn' : 'alpha-btn empty';
+                
+                btn.innerHTML = `
+                    <span class="letter">${letter}</span>
+                    <span class="count">${count}</span>
+                `;
+                
+                if (count > 0) {
+                    btn.onclick = () => openLetter(letter);
+                } else {
+                    btn.title = "Belum ada isyarat untuk huruf ini";
+                }
+                
+                grid.appendChild(btn);
+            });
+
+            // Render tombol # jika ada isyarat dengan awalan angka
+            if (alphabetMap['#'].length > 0) {
+                const btn = document.createElement('button');
+                btn.className = 'alpha-btn';
+                btn.innerHTML = `<span class="letter">#</span><span class="count">${alphabetMap['#'].length}</span>`;
+                btn.onclick = () => openLetter('#');
+                grid.appendChild(btn);
+            }
+        }
+
+        function openLetter(letter) {
+            currentView = 'results';
+            document.getElementById('alphabetGridView').style.display = 'none';
+            document.getElementById('alphabetResultsView').style.display = 'block';
+            
+            let title = letter === '#' ? 'Awalan Angka/Simbol' : `Berawalan Huruf "${letter}"`;
+            document.getElementById('pageTitle').innerText = title;
+
+            const resultsDiv = document.getElementById('resultsDiv');
+            resultsDiv.innerHTML = '';
+
+            let items = alphabetMap[letter];
+            items.sort((a, b) => a.word.localeCompare(b.word));
+
+            items.forEach(item => {
+                resultsDiv.appendChild(createCardNode(item));
+            });
+        }
+
+        // ==========================================
+        // FUNGSI RENDER VIDEO 
+        // ==========================================
+        function parseYoutubeData(iframeSrc) {
+            let videoId = null, seconds = 0;
+            if (iframeSrc) {
+                let vMatch = iframeSrc.match(/embed\/([a-zA-Z0-9_-]+)/);
+                if (vMatch) videoId = vMatch[1];
+                let startMatch = iframeSrc.match(/[?&]start=(\d+)/);
+                if (startMatch) seconds = parseInt(startMatch[1]);
+            }
+            let watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : iframeSrc;
+            if (videoId && seconds > 0) watchUrl += `&t=${seconds}s`;
+            return { videoId, seconds, watchUrl };
+        }
+
+        function createCardNode(item) {
+            const card = document.createElement('div');
+            card.className = 'word-card';
+
+            const headerBtn = document.createElement('button');
+            headerBtn.className = 'card-header-btn';
+            headerBtn.innerHTML = `<span>${escapeHtml(item.word)}</span><span class="arrow-icon">▼</span>`;
+
+            const body = document.createElement('div');
+            body.className = 'card-body';
+
+            headerBtn.onclick = function() {
+                if (body.style.display === 'block') {
+                    body.style.display = 'none';
+                    headerBtn.classList.remove('active');
+                    body.innerHTML = '';
+                } else {
+                    body.style.display = 'block';
+                    headerBtn.classList.add('active');
+                    renderCardVideos(body, item);
+                }
+            };
+
+            card.appendChild(headerBtn);
+            card.appendChild(body);
+            return card;
+        }
+
+        function renderCardVideos(bodyContainer, item) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = item.rawHtml;
+            const iframes = tempDiv.getElementsByTagName('iframe');
+
+            if (iframes.length === 0) {
+                bodyContainer.innerHTML = '<p class="status-msg">Belum ada video untuk isyarat ini.</p>';
+                return;
+            }
+
+            let html = '';
+            for (let i = 0; i < iframes.length; i++) {
+                let src = iframes[i].getAttribute('src') || '';
+                
+                if (src && !src.includes('enablejsapi=1')) {
+                    let separator = src.includes('?') ? '&' : '?';
+                    src += separator + 'enablejsapi=1';
+                    iframes[i].setAttribute('src', src);
+                }
+
+                let label = iframes.length > 1 ? `ISYARAT ${i + 1}` : 'ISYARAT';
+                let parsed = parseYoutubeData(src);
+                let timeFormatted = formatSeconds(parsed.seconds);
+
+                html += `
+                    <div class="video-item">
+                        <div class="video-label">${label}</div>
+                        <div class="iframe-container">
+                            ${iframes[i].outerHTML}
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn" onclick="openShareModal('${escapeJs(item.word)}', '${escapeJs(parsed.watchUrl)}')">
+                                🔗 Salin Tautan
+                            </button>
+                            <a class="action-btn" href="${parsed.watchUrl}" target="_blank" rel="noopener">
+                                ▶ YouTube
+                            </a>
+                            <button class="action-btn" onclick="let iframe = this.closest('.video-item').querySelector('iframe'); replayVideo(iframe, ${parsed.seconds}, 0.5);" title="Putar Lambat 0.5x">
+                                🐢 Lambat
+                            </button>
+                            <button class="action-btn" onclick="let iframe = this.closest('.video-item').querySelector('iframe'); replayVideo(iframe, ${parsed.seconds}, 1);" title="Putar Normal">
+                                🔄 ${timeFormatted}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            bodyContainer.innerHTML = html;
+        }
+
+        function replayVideo(iframeElement, seconds, speed = 1) {
+            if (!iframeElement) return;
+            
+            let src = iframeElement.src;
+            src = src.replace(/([?&])start=\d+/, '$1').replace(/([?&])autoplay=1/, '$1');
+            src = src.replace(/&&/g, '&').replace(/\?&/g, '?');
+            
+            let separator = src.includes('?') ? '&' : '?';
+            iframeElement.src = src + separator + 'start=' + seconds + '&autoplay=1';
+
+            if (speed !== 1) {
+                setTimeout(() => {
+                    iframeElement.contentWindow.postMessage(JSON.stringify({
+                        event: 'command',
+                        func: 'setPlaybackRate',
+                        args: [speed]
+                    }), '*');
+                }, 1500); 
+            }
+        }
+
+        // ==========================================
+        // FUNGSI SHARE 
+        // ==========================================
+        function openShareModal(word, youtubeUrl) {
+            currentShareWord = word;
+            currentYoutubeUrl = youtubeUrl;
+            document.getElementById('shareModal').style.display = 'flex';
+        }
+
+        function closeShareModal() { document.getElementById('shareModal').style.display = 'none'; }
+
+        function copyKamusLink() {
+            const shareUrl = window.location.origin + window.location.pathname.replace('abjad.html', 'index.html') + '?kata=' + encodeURIComponent(currentShareWord);
+            copyToClipboard(shareUrl, "Link Kamus berhasil disalin!");
+            closeShareModal();
+        }
+
+        function copyYoutubeLink() {
+            if (currentYoutubeUrl) copyToClipboard(currentYoutubeUrl, "Link Video YouTube berhasil disalin!");
+            closeShareModal();
+        }
+
+        function copyToClipboard(text, msg) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => showToast(msg)).catch(() => prompt("Salin tautan ini:", text));
+            } else { prompt("Salin tautan ini:", text); }
+        }
+
+        function formatSeconds(totalSeconds) {
+            let mins = Math.floor(totalSeconds / 60);
+            let secs = totalSeconds % 60;
+            return (mins < 10 ? '0' + mins : mins) + ':' + (secs < 10 ? '0' + secs : secs);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.innerText = msg;
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        function escapeHtml(str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+        function escapeJs(str) { return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
+    </script>
+</body>
+</html>
