@@ -266,3 +266,226 @@
                 const count = dataArray.length;
                 const btn = document.createElement('div');
                 btn.className = catName === "Semua Isyarat" ? 'cat-btn all' : 'cat-btn';
+                
+                let innerHtml = `<span>${escapeHtml(catName)}</span><div class="cat-count">${count} Isyarat</div>`;
+                
+                // Cek apakah ada progres tersimpan untuk kategori ini
+                if (savedProgress[catName] && (savedProgress[catName].deck.length > 0 || savedProgress[catName].currentItem)) {
+                    let s = savedProgress[catName];
+                    let remaining = s.deck.length + (s.currentItem ? 1 : 0);
+                    let completed = s.totalCards - remaining;
+                    let pct = Math.round((completed / s.totalCards) * 100);
+                    
+                    // Sisipkan Progress Bar Mini di dalam tombol
+                    innerHtml += `
+                        <div class="mini-progress-bg">
+                            <div class="mini-progress-fill" style="width: ${pct}%;"></div>
+                        </div>
+                        <div class="mini-progress-text">MELANJUTKAN (${pct}%)</div>
+                    `;
+                }
+
+                btn.innerHTML = innerHtml;
+                btn.onclick = () => startOrResumeSession(catName, dataArray);
+                grid.appendChild(btn);
+            });
+        }
+
+        // ==========================================
+        // LOGIKA PERMAINAN & SIMPAN PROGRESS
+        // ==========================================
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startOrResumeSession(catName, dataArray) {
+            currentCategoryLabel = catName;
+            
+            // Cek progres tersimpan
+            if (savedProgress[catName]) {
+                deck = savedProgress[catName].deck;
+                totalCards = savedProgress[catName].totalCards;
+                currentItem = savedProgress[catName].currentItem;
+            } else {
+                // Sesi Baru
+                deck = [...dataArray];
+                shuffleArray(deck);
+                totalCards = deck.length;
+                currentItem = null;
+            }
+            
+            switchToGameView();
+            if (!currentItem) {
+                loadNextQuestion(); 
+            } else {
+                renderCurrentCard();
+            }
+        }
+
+        function saveState() {
+            if (deck.length === 0 && !currentItem) {
+                delete savedProgress[currentCategoryLabel]; // Hapus jika sudah selesai 100%
+            } else {
+                savedProgress[currentCategoryLabel] = {
+                    deck: deck,
+                    totalCards: totalCards,
+                    currentItem: currentItem
+                };
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(savedProgress));
+        }
+
+        function resetCurrentCategory() {
+            if (confirm(`Yakin ingin mengulang kategori "${currentCategoryLabel}" dari 0%?`)) {
+                delete savedProgress[currentCategoryLabel];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(savedProgress));
+                startOrResumeSession(currentCategoryLabel, categoriesMap[currentCategoryLabel]);
+            }
+        }
+
+        function switchToGameView() {
+            isPlaying = true;
+            document.getElementById('setupView').style.display = 'none';
+            document.getElementById('gameView').style.display = 'flex';
+            document.getElementById('currentCatLabel').innerText = currentCategoryLabel;
+            document.getElementById('navBackBtn').innerText = '← Kembali ke Menu';
+        }
+
+        function handleBack() {
+            if (isPlaying) {
+                // Simpan state, lalu kembali ke menu (tanpa konfirmasi yang mengganggu)
+                saveState();
+                isPlaying = false;
+                document.getElementById('gameView').style.display = 'none';
+                document.getElementById('setupView').style.display = 'flex';
+                document.getElementById('navBackBtn').innerText = '← Ke Kamus';
+                renderCategoryMenu(); // Render ulang agar bar mini ter-update
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function loadNextQuestion() {
+            if (deck.length === 0 && !currentItem) {
+                alert("Luar biasa! Anda telah berhasil menghafal seluruh isyarat di kategori ini (100%).");
+                delete savedProgress[currentCategoryLabel];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(savedProgress));
+                handleBack();
+                return;
+            }
+
+            currentItem = deck.shift();
+            saveState(); // Simpan progres segera setelah menarik kartu
+            renderCurrentCard();
+        }
+
+        function renderCurrentCard() {
+            if (!currentItem) return;
+
+            // Kalkulasi Progress Bar
+            let remaining = deck.length + 1; // +1 untuk kartu yang sedang dipegang (currentItem)
+            let completed = totalCards - remaining;
+            let percent = Math.round((completed / totalCards) * 100);
+
+            document.getElementById('gameProgressFill').style.width = percent + '%';
+            document.getElementById('progressTextDetail').innerText = `${completed} dari ${totalCards} selesai`;
+            document.getElementById('progressPercentText').innerText = `${percent}%`;
+
+            // Reset Tampilan Kartu
+            document.getElementById('cardContent').innerHTML = `<div class="word-prompt">${escapeHtml(currentItem.word)}</div>`;
+            document.getElementById('showAnswerBtn').style.display = 'inline-block';
+            document.getElementById('answerContainer').style.display = 'none';
+            document.getElementById('evalSection').style.display = 'none';
+            document.getElementById('videoContainer').innerHTML = '';
+        }
+
+        // ==========================================
+        // RENDER VIDEO & JAWABAN
+        // ==========================================
+        function parseYoutubeData(iframeSrc) {
+            let videoId = null, seconds = 0;
+            if (iframeSrc) {
+                let vMatch = iframeSrc.match(/embed\/([a-zA-Z0-9_-]+)/);
+                if (vMatch) videoId = vMatch[1];
+                let startMatch = iframeSrc.match(/[?&]start=(\d+)/);
+                if (startMatch) seconds = parseInt(startMatch[1]);
+            }
+            let watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : iframeSrc;
+            if (videoId && seconds > 0) watchUrl += `&t=${seconds}s`;
+            return { videoId, seconds, watchUrl };
+        }
+
+        function showAnswer() {
+            document.getElementById('showAnswerBtn').style.display = 'none';
+            document.getElementById('answerContainer').style.display = 'flex';
+            document.getElementById('evalSection').style.display = 'flex';
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = currentItem.rawHtml;
+            const iframes = tempDiv.getElementsByTagName('iframe');
+
+            let html = '';
+            for (let i = 0; i < iframes.length; i++) {
+                let src = iframes[i].getAttribute('src') || '';
+                
+                if (src && !src.includes('enablejsapi=1')) {
+                    let separator = src.includes('?') ? '&' : '?';
+                    src += separator + 'enablejsapi=1';
+                    iframes[i].setAttribute('src', src);
+                }
+
+                let parsed = parseYoutubeData(src);
+                html += `
+                    <div class="video-item">
+                        <div class="iframe-wrapper">${iframes[i].outerHTML}</div>
+                        <div class="video-actions">
+                            <a class="action-btn" href="${parsed.watchUrl}" target="_blank" rel="noopener">▶ YouTube</a>
+                            <button class="action-btn" onclick="let iframe = this.closest('.video-item').querySelector('iframe'); replayVideo(iframe, ${parsed.seconds}, 0.5);" title="Putar Lambat 0.5x">🐢 Lambat</button>
+                            <button class="action-btn" onclick="let iframe = this.closest('.video-item').querySelector('iframe'); replayVideo(iframe, ${parsed.seconds}, 1);">🔄 Ulang</button>
+                        </div>
+                    </div>
+                `;
+            }
+            document.getElementById('videoContainer').innerHTML = html;
+        }
+
+        function replayVideo(iframeElement, seconds, speed = 1) {
+            if (!iframeElement) return;
+            let src = iframeElement.src;
+            src = src.replace(/([?&])start=\d+/, '$1').replace(/([?&])autoplay=1/, '$1');
+            src = src.replace(/&&/g, '&').replace(/\?&/g, '?');
+            let separator = src.includes('?') ? '&' : '?';
+            iframeElement.src = src + separator + 'start=' + seconds + '&autoplay=1';
+
+            if (speed !== 1) {
+                setTimeout(() => {
+                    iframeElement.contentWindow.postMessage(JSON.stringify({
+                        event: 'command', func: 'setPlaybackRate', args: [speed]
+                    }), '*');
+                }, 1500); 
+            }
+        }
+
+        // ==========================================
+        // EVALUASI JAWABAN
+        // ==========================================
+        function nextCard(isSuccess) {
+            if (!isSuccess) {
+                // Gagal: Selipkan kembali ke tumpukan (kartu tidak berkurang)
+                const insertIndex = Math.min(deck.length, 2); 
+                deck.splice(insertIndex, 0, currentItem);
+            }
+            
+            currentItem = null; 
+            saveState(); // Simpan struktur deck setelah evaluasi
+
+            loadNextQuestion();
+        }
+
+        function escapeHtml(str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+    </script>
+</body>
+</html>
