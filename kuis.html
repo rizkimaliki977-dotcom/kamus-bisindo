@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Isyarat - Kamus Bisindo</title>
+    
+    <!-- PWA & Favicon -->
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a1a">
+    
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #1a1a1a;
+            --header-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --card-bg: #ffffff;
+            --btn-bg: #ffffff;
+            --btn-hover: #f1f3f5;
+            --shadow: rgba(0,0,0,0.05);
+            --subtext-color: #6c757d;
+            --accent-green: #2ecc71;
+            --accent-red: #e74c3c;
+            --accent-blue: #3498db;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #f0f0f0;
+            --header-bg: #1e1e1e;
+            --border-color: #333333;
+            --card-bg: #1e1e1e;
+            --btn-bg: #2d2d2d;
+            --btn-hover: #3a3a3a;
+            --shadow: rgba(0,0,0,0.3);
+            --subtext-color: #aaaaaa;
+            --accent-blue: #2980b9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-color); color: var(--text-color); 
+            display: flex; justify-content: center; min-height: 100vh; padding: 16px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .app-container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 16px; }
+
+        /* Navigasi Atas */
+        .top-bar { display: flex; align-items: center; justify-content: space-between; background-color: var(--header-bg); border: 1.5px solid var(--border-color); border-radius: 16px; padding: 14px 16px; box-shadow: 0 2px 10px var(--shadow); }
+        .back-btn { display: inline-flex; align-items: center; background-color: var(--btn-bg); border: 1.5px solid var(--border-color); border-radius: 12px; padding: 8px 14px; font-size: 14px; font-weight: 700; color: var(--text-color); cursor: pointer; text-decoration: none; box-shadow: 0 2px 6px var(--shadow); transition: background 0.2s; }
+        .back-btn:hover { background-color: var(--btn-hover); }
+        .page-title { font-size: 16px; font-weight: 700; margin: 0; }
+
+        /* Tampilan Flashcard Kuis */
+        #quizView { display: none; flex-direction: column; gap: 16px; }
+        .flashcard { background-color: var(--card-bg); border: 1.5px solid var(--border-color); border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 4px 16px var(--shadow); display: flex; flex-direction: column; gap: 16px; }
+        
+        /* Progress Bar */
+        .progress-wrapper { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+        .progress-header { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; color: var(--subtext-color); text-transform: uppercase; letter-spacing: 1px; }
+        .progress-bg { width: 100%; height: 10px; background-color: var(--border-color); border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background-color: var(--accent-green); border-radius: 10px; transition: width 0.4s ease-out; }
+        .reset-btn { background: none; border: none; color: var(--accent-red); font-size: 11px; font-weight: 700; cursor: pointer; text-transform: uppercase; padding: 4px; display: inline-flex; align-items: center; gap: 4px; }
+        .reset-btn:hover { text-decoration: underline; }
+
+        /* Video Container */
+        .video-item { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+        .iframe-wrapper { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); background-color: #000; }
+        .iframe-wrapper iframe { width: 100%; height: 100%; border: none; }
+        .video-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; background-color: var(--btn-bg); border: 1.5px solid var(--border-color); border-radius: 20px; padding: 8px 14px; font-size: 12px; font-weight: 600; color: var(--text-color); cursor: pointer; text-decoration: none; }
+
+        /* Tombol Pilihan Ganda */
+        .options-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .option-btn { background-color: var(--btn-bg); border: 2px solid var(--border-color); border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 700; color: var(--text-color); cursor: pointer; transition: all 0.2s; text-align: left; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px var(--shadow); }
+        
+        .option-btn:hover:not(.disabled) { transform: translateY(-2px); border-color: var(--accent-blue); }
+        
+        /* State Tombol Jawaban */
+        .option-btn.correct { background-color: rgba(46, 204, 113, 0.15); border-color: var(--accent-green); color: var(--accent-green); transform: scale(1.02); }
+        .option-btn.wrong { background-color: rgba(231, 76, 60, 0.15); border-color: var(--accent-red); color: var(--accent-red); animation: shake 0.4s; }
+        .option-btn.disabled { opacity: 0.5; background-color: var(--bg-color); border-color: var(--border-color); cursor: not-allowed; color: var(--subtext-color); box-shadow: none; transform: none; }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .status-msg { color: var(--subtext-color); font-size: 15px; font-style: italic; text-align: center; padding: 30px; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Navigasi Atas -->
+        <div class="top-bar">
+            <button class="back-btn" onclick="handleBack()">← Kembali</button>
+            <h1 class="page-title">Kuis Pintar</h1>
+            <div style="width: 70px;"></div>
+        </div>
+
+        <div id="loadingView">
+            <p class="status-msg" id="loadingMsg">Menganalisis video untuk kuis...</p>
+        </div>
+
+        <!-- LAYAR PERMAINAN KUIS -->
+        <div id="quizView">
+            <div class="flashcard">
+                
+                <!-- Progress Bar -->
+                <div class="progress-wrapper">
+                    <div class="progress-header">
+                        <span>Sesi Kuis</span>
+                        <button class="reset-btn" onclick="resetQuiz()" title="Mulai Ulang Kuis">🔄 Reset</button>
+                    </div>
+                    <div class="progress-bg">
+                        <div class="progress-fill" id="quizProgressFill" style="width: 0%;"></div>
+                    </div>
+                    <div class="progress-header" style="margin-top: 2px;">
+                        <span id="progressTextDetail">0 / 0 Selesai</span>
+                        <span id="progressPercentText" style="color: var(--accent-green);">0%</span>
+                    </div>
+                </div>
+                
+                <!-- Video Section -->
+                <div class="video-item" id="videoSection">
+                    <div class="iframe-wrapper" id="videoContainer"></div>
+                    <div class="video-actions" id="videoControls"></div>
+                </div>
+
+                <!-- Pilihan Ganda -->
+                <div class="options-grid" id="optionsContainer"></div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script>
+        // Tema Sistem
+        function initTheme() {
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                document.body.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+            });
+        }
+        initTheme();
+
+        const STORAGE_KEY = 'bisindo_kuis_state';
+        
+        // Data Global
+        let allWords = []; // Untuk pengecoh acak
+        let quizData = []; // Data isyarat khusus kuis (Kolom D = YA)
+        
+        // State Sesi
+        let deck = [];
+        let totalCards = 0;
+        let currentItem = null;
+        let hasGuessedWrong = false;
+
+        const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx8Kb-ezyZdVw46ruREAydDcWtquytEFrWomKc9zdMgOG0dGbElZz8NmVDMGpvgSJmY9fSDV18LVty/pub?output=csv';
+
+        // 1. Memuat dan Memproses Data
+        Papa.parse(sheetCsvUrl, {
+            download: true,
+            header: false,
+            skipEmptyLines: true,
+            complete: function(results) {
+                try {
+                    results.data.forEach(row => {
+                        if (!row || !row[0] || row[0].trim() === "") return;
+                        
+                        let word = row[0].trim();
+                        let html = row[1] ? row[1].trim() : "";
+                        let isQuizValid = row[3] ? row[3].trim().toUpperCase() === "YA" : false;
+                        
+                        // Simpan semua kata untuk pengecoh otomatis
+                        allWords.push(word);
+
+                        // Ambil hanya yang bertanda "YA"
+                        if (isQuizValid && html.includes('<iframe')) {
+                            quizData.push({
+                                word: word,
+                                rawHtml: html,
+                                wrong1: row[4] ? row[4].trim() : null,
+                                wrong2: row[5] ? row[5].trim() : null,
+                                wrong3: row[6] ? row[6].trim() : null
+                            });
+                        }
+                    });
+
+                    if (quizData.length > 0) {
+                        initQuizSession();
+                    } else {
+                        document.getElementById('loadingMsg').innerText = 'Belum ada isyarat yang ditandai "YA" di Kolom D untuk kuis.';
+                    }
+                } catch (e) {
+                    document.getElementById('loadingMsg').innerText = 'Gagal memproses data kamus.';
+                }
+            }
+        });
+
+        // 2. Inisialisasi & Resume Sesi
+        function initQuizSession() {
+            document.getElementById('loadingView').style.display = 'none';
+            document.getElementById('quizView').style.display = 'flex';
+
+            let saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                let state = JSON.parse(saved);
+                deck = state.deck;
+                totalCards = state.totalCards;
+                currentItem = state.currentItem;
+            } else {
+                startNewQuiz();
+                return;
+            }
+
+            if (!currentItem && deck.length === 0) {
+                startNewQuiz(); // Kalau sudah tamat, ulangi
+            } else if (!currentItem) {
+                loadNextQuestion();
+            } else {
+                renderCard();
+            }
+        }
+
+        function startNewQuiz() {
+            deck = [...quizData];
+            shuffleArray(deck);
+            totalCards = deck.length;
+            currentItem = null;
+            loadNextQuestion();
+        }
+
+        function saveState() {
+            if (deck.length === 0 && !currentItem) {
+                localStorage.removeItem(STORAGE_KEY);
+            } else {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    deck: deck,
+                    totalCards: totalCards,
+                    currentItem: currentItem
+                }));
+            }
+        }
+
+        function resetQuiz() {
+            if (confirm("Yakin ingin mereset progres kuis kembali ke 0%?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                startNewQuiz();
+            }
+        }
+
+        function handleBack() {
+            saveState();
+            window.location.href = 'index.html';
+        }
+
+        // 3. Logika Kartu & Pilihan
+        function loadNextQuestion() {
+            if (deck.length === 0) {
+                alert("🎉 Luar Biasa! Anda telah berhasil menyelesaikan semua soal kuis!");
+                localStorage.removeItem(STORAGE_KEY);
+                window.location.href = 'index.html';
+                return;
+            }
+
+            currentItem = deck.shift();
+            hasGuessedWrong = false;
+            saveState();
+            renderCard();
+        }
+
+        function getFirstVideoParams(rawHtml) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = rawHtml;
+            const iframe = tempDiv.querySelector('iframe');
+            if (!iframe) return null;
+
+            let src = iframe.getAttribute('src');
+            if (src && !src.includes('enablejsapi=1')) {
+                src += (src.includes('?') ? '&' : '?') + 'enablejsapi=1';
+                iframe.setAttribute('src', src);
+            }
+
+            let videoId = null, seconds = 0;
+            let vMatch = src.match(/embed\/([a-zA-Z0-9_-]+)/);
+            if (vMatch) videoId = vMatch[1];
+            let startMatch = src.match(/[?&]start=(\d+)/);
+            if (startMatch) seconds = parseInt(startMatch[1]);
+            
+            let watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : src;
+            if (videoId && seconds > 0) watchUrl += `&t=${seconds}s`;
+
+            return { iframeHtml: iframe.outerHTML, watchUrl, seconds };
+        }
+
+        function renderCard() {
+            // Kalkulasi Progress (Membiarkan persentase mundur jika salah)
+            let remaining = deck.length + 1;
+            let completed = Math.max(0, totalCards - remaining);
+            let percent = totalCards > 0 ? Math.min(100, Math.round((completed / totalCards) * 100)) : 0;
+
+            document.getElementById('quizProgressFill').style.width = percent + '%';
+            document.getElementById('progressTextDetail').innerText = `${completed} dari ${totalCards} Selesai`;
+            document.getElementById('progressPercentText').innerText = `${percent}%`;
+
+            // Render Video
+            const videoData = getFirstVideoParams(currentItem.rawHtml);
+            document.getElementById('videoContainer').innerHTML = videoData ? videoData.iframeHtml : '<p>Video tidak ditemukan.</p>';
+            
+            if (videoData) {
+                document.getElementById('videoControls').innerHTML = `
+                    <a class="action-btn" href="${videoData.watchUrl}" target="_blank" rel="noopener">▶ YouTube</a>
+                    <button class="action-btn" onclick="let iframe = document.querySelector('#videoContainer iframe'); replayVideo(iframe, ${videoData.seconds}, 0.5);" title="Putar Lambat">🐢 Lambat</button>
+                    <button class="action-btn" onclick="let iframe = document.querySelector('#videoContainer iframe'); replayVideo(iframe, ${videoData.seconds}, 1);">🔄 Ulangi</button>
+                `;
+            }
+
+            // Siapkan Pilihan Ganda
+            let options = generateOptions(currentItem);
+            let optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+
+            options.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span>${escapeHtml(opt)}</span>`;
+                btn.onclick = () => checkAnswer(btn, opt === currentItem.word);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function generateOptions(item) {
+            let distractors = [];
+            // Ambil pengecoh manual jika ada
+            if (item.wrong1) distractors.push(item.wrong1);
+            if (item.wrong2) distractors.push(item.wrong2);
+            if (item.wrong3) distractors.push(item.wrong3);
+
+            // Jika pengecoh manual kurang dari 3, isi otomatis dari allWords
+            let loopSafety = 0;
+            while (distractors.length < 3 && loopSafety < 100) {
+                let randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+                if (randomWord !== item.word && !distractors.includes(randomWord)) {
+                    distractors.push(randomWord);
+                }
+                loopSafety++;
+            }
+
+            let finalOptions = [item.word, ...distractors];
+            shuffleArray(finalOptions);
+            return finalOptions;
+        }
+
+        // 4. Evaluasi & Haptic Feedback
+        function checkAnswer(btnElement, isCorrect) {
+            if (btnElement.classList.contains('disabled') || btnElement.classList.contains('correct')) return;
+
+            // Trigger Getaran (Haptic Feedback)
+            if (navigator.vibrate) {
+                if (isCorrect) navigator.vibrate(100); // 1 getaran pendek halus
+                else navigator.vibrate([100, 100, 100]); // 2 getaran kasar
+            }
+
+            if (isCorrect) {
+                // Jawaban Benar
+                btnElement.classList.add('correct');
+                btnElement.innerHTML += '<span>✅</span>';
+                
+                // Kunci semua tombol
+                const allBtns = document.querySelectorAll('.option-btn');
+                allBtns.forEach(b => {
+                    if (b !== btnElement) b.classList.add('disabled');
+                });
+
+                // Spaced Repetition: Jika sebelumnya pernah salah, masukkan lagi ke tumpukan antrean
+                if (hasGuessedWrong) {
+                    let insertIndex = Math.min(deck.length, 3); // Muncul lagi 3 soal kemudian
+                    deck.splice(insertIndex, 0, currentItem);
+                }
+                
+                currentItem = null; 
+                saveState();
+
+                // Pindah ke soal berikutnya setelah 1 detik
+                setTimeout(loadNextQuestion, 1200);
+
+            } else {
+                // Jawaban Salah
+                hasGuessedWrong = true;
+                btnElement.classList.add('wrong');
+                
+                setTimeout(() => {
+                    btnElement.classList.remove('wrong');
+                    btnElement.classList.add('disabled');
+                }, 400); // Setelah animasi goyang selesai, ubah jadi abu-abu
+            }
+        }
+
+        // 5. Utilitas
+        function replayVideo(iframeElement, seconds, speed = 1) {
+            if (!iframeElement) return;
+            let src = iframeElement.src;
+            src = src.replace(/([?&])start=\d+/, '$1').replace(/([?&])autoplay=1/, '$1');
+            src = src.replace(/&&/g, '&').replace(/\?&/g, '?');
+            let separator = src.includes('?') ? '&' : '?';
+            iframeElement.src = src + separator + 'start=' + seconds + '&autoplay=1';
+
+            if (speed !== 1) {
+                setTimeout(() => {
+                    iframeElement.contentWindow.postMessage(JSON.stringify({
+                        event: 'command', func: 'setPlaybackRate', args: [speed]
+                    }), '*');
+                }, 1500); 
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function escapeHtml(str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+    </script>
+</body>
+</html>
