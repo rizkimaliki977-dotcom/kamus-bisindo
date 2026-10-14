@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Embed YouTube Bisindo</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --border: #e0e0e0;
+            --primary: #1a1a1a;
+            --accent-blue: #3498db;
+            --accent-green: #2ecc71;
+            --accent-red: #e74c3c;
+            --text-main: #333333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; padding: 20px; }
+        .container { max-width: 800px; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+        
+        .card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Input & Buttons */
+        .input-group { display: flex; gap: 10px; margin-bottom: 16px; }
+        input[type="text"] { flex: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; transition: border 0.2s; }
+        input[type="text"]:focus { border-color: var(--accent-blue); }
+        
+        button { padding: 12px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
+        button:active { transform: scale(0.97); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-green { background: var(--accent-green); color: white; }
+        .btn-red { background: var(--accent-red); color: white; }
+        .btn-blue { background: var(--accent-blue); color: white; }
+        .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: #f8f9fa; }
+
+        /* Video Player Area */
+        .video-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 16px; position: relative; }
+        
+        /* Time Controls */
+        .time-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .time-box { display: flex; flex-direction: column; gap: 8px; }
+        .time-display { font-size: 13px; color: #666; font-weight: 600; background: #f8f9fa; padding: 6px; border-radius: 6px; text-align: center; border: 1px solid var(--border); }
+
+        /* Output Area */
+        textarea { width: 100%; height: 80px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: monospace; resize: none; background: #f8f9fa; color: #555; margin-bottom: 12px; }
+        
+        /* Suggestions */
+        .search-wrapper { position: relative; width: 100%; }
+        #suggestionBox { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; margin-top: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10; max-height: 200px; overflow-y: auto; }
+        .sug-item { padding: 12px 16px; cursor: pointer; font-size: 14px; border-bottom: 1px solid #f1f3f5; }
+        .sug-item:hover { background: #f1f3f5; }
+        .sug-item:last-child { border-bottom: none; }
+        .status-badge { font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: bold; margin-left: 8px; }
+        .status-exists { background: #e8f8f5; color: #27ae60; }
+        .status-new { background: #fdf2e9; color: #e67e22; }
+    </style>
+    <!-- Muat YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <!-- Muat PapaParse -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- 1. Pengecekan Database Kamus -->
+    <div class="card">
+        <div class="card-title">Cek Isyarat di Database Kamus</div>
+        <div class="search-wrapper">
+            <input type="text" id="dbSearchInput" placeholder="Ketik isyarat untuk mengecek apakah sudah ada di kamus..." oninput="handleDbSearch()" autocomplete="off">
+            <div id="suggestionBox"></div>
+        </div>
+        <p id="dbStatusMsg" style="font-size: 13px; color: #666; margin-top: 8px;">⏳ Sedang memuat database dari Google Sheets...</p>
+    </div>
+
+    <!-- 2. Video Player & Pengaturan Waktu -->
+    <div class="card">
+        <div class="card-title">Generator Embed YouTube</div>
+        <div class="input-group">
+            <input type="text" id="ytUrlInput" placeholder="Paste URL YouTube di sini (contoh: https://youtu.be/yUWRLUEuEjw)">
+            <button class="btn-primary" onclick="loadVideo()">Load Video</button>
+        </div>
+        
+        <div class="video-wrapper">
+            <div id="ytPlayer"></div>
+        </div>
+
+        <div class="time-controls">
+            <!-- Set Start -->
+            <div class="time-box">
+                <button class="btn-green" onclick="setStartTime()">🚩 Set Start</button>
+                <div class="time-display" id="startDisplay">Start: Belum diatur</div>
+            </div>
+            
+            <!-- Set End -->
+            <div class="time-box">
+                <button class="btn-red" onclick="setEndTime()">🛑 Set End</button>
+                <div class="time-display" id="endDisplay">End: Belum diatur</div>
+            </div>
+
+            <!-- Clear Times -->
+            <div class="time-box">
+                <button class="btn-outline" onclick="resetTimes()">🔄 Reset Waktu</button>
+                <div class="time-display">Hapus start & end</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Hasil HTML Embed -->
+    <div class="card">
+        <div class="card-title">
+            Kode HTML Embed
+            <button class="btn-blue" id="copyBtn" onclick="copyCode()" style="padding: 8px 16px; font-size: 13px;">📋 Copy Kode</button>
+        </div>
+        <textarea id="embedOutput" readonly>Masukkan URL YouTube terlebih dahulu...</textarea>
+    </div>
+
+</div>
+
+<script>
+    // ==========================================
+    // 1. LOGIKA DATABASE KAMUS (GOOGLE SHEETS)
+    // ==========================================
+    let dictionaryWords = [];
+    const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx8Kb-ezyZdVw46ruREAydDcWtquytEFrWomKc9zdMgOG0dGbElZz8NmVDMGpvgSJmY9fSDV18LVty/pub?output=csv';
+
+    Papa.parse(sheetCsvUrl, {
+        download: true,
+        header: false,
+        skipEmptyLines: true,
+        complete: function(results) {
+            // Ambil data kolom pertama dan jadikan huruf kecil semua untuk pencarian
+            dictionaryWords = results.data
+                .filter(row => row && row[0] && row[0].trim() !== "")
+                .map(row => row[0].trim().toLowerCase());
+            document.getElementById('dbStatusMsg').innerText = `✅ Database dimuat. Total: ${dictionaryWords.length} isyarat.`;
+        },
+        error: function() {
+            document.getElementById('dbStatusMsg').innerText = `❌ Gagal memuat database. Cek koneksi internet.`;
+        }
+    });
+
+    function handleDbSearch() {
+        const input = document.getElementById('dbSearchInput').value.toLowerCase().trim();
+        const sugBox = document.getElementById('suggestionBox');
+        
+        if (!input) {
+            sugBox.style.display = 'none';
+            return;
+        }
+
+        // Cek kecocokan
+        let matches = dictionaryWords.filter(word => word.includes(input));
+        
+        sugBox.innerHTML = '';
+        
+        if (matches.length > 0) {
+            matches.slice(0, 8).forEach(word => {
+                let div = document.createElement('div');
+                div.className = 'sug-item';
+                div.innerHTML = `<span>${word}</span> <span class="status-badge status-exists">SUDAH ADA</span>`;
+                div.onmousedown = (e) => {
+                    e.preventDefault();
+                    document.getElementById('dbSearchInput').value = word;
+                    sugBox.style.display = 'none';
+                };
+                sugBox.appendChild(div);
+            });
+        } else {
+            let div = document.createElement('div');
+            div.className = 'sug-item';
+            div.innerHTML = `<span>"${input}"</span> <span class="status-badge status-new">KATA BARU</span>`;
+            sugBox.appendChild(div);
+        }
+        
+        sugBox.style.display = 'block';
+    }
+
+    // Sembunyikan kotak saran jika klik di luar
+    document.addEventListener('click', function(e) {
+        if (!document.getElementById('dbSearchInput').contains(e.target)) {
+            document.getElementById('suggestionBox').style.display = 'none';
+        }
+    });
+
+    // ==========================================
+    // 2. LOGIKA YOUTUBE PLAYER & WAKTU
+    // ==========================================
+    let player;
+    let currentVideoId = '';
+    let startSec = null;
+    let endSec = null;
+
+    function onYouTubeIframeAPIReady() {
+        // API siap, player akan diinisialisasi saat tombol ditekan
+    }
+
+    function extractVideoID(url) {
+        let match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?\n]+)/);
+        return match ? match[1] : null;
+    }
+
+    function loadVideo() {
+        let url = document.getElementById('ytUrlInput').value.trim();
+        let videoId = extractVideoID(url);
+
+        if (!videoId) {
+            alert('URL YouTube tidak valid!');
+            return;
+        }
+
+        currentVideoId = videoId;
+        resetTimes();
+
+        if (player) {
+            player.loadVideoById(videoId);
+        } else {
+            player = new YT.Player('ytPlayer', {
+                height: '100%',
+                width: '100%',
+                videoId: videoId,
+                playerVars: { 'playsinline': 1 }
+            });
+        }
+    }
+
+    function formatTime(seconds) {
+        let m = Math.floor(seconds / 60);
+        let s = seconds % 60;
+        return `${m}:${s < 10 ? '0'+s : s} (${seconds}s)`;
+    }
+
+    function setStartTime() {
+        if (!player || !player.getCurrentTime) return alert("Muat dan putar video terlebih dahulu!");
+        startSec = Math.floor(player.getCurrentTime());
+        
+        // Validasi: Start tidak boleh lebih dari End
+        if (endSec !== null && startSec >= endSec) {
+            startSec = null;
+            return alert("Waktu Start tidak boleh melebihi atau sama dengan waktu End!");
+        }
+
+        document.getElementById('startDisplay').innerText = `Start: ${formatTime(startSec)}`;
+        generateEmbedCode();
+    }
+
+    function setEndTime() {
+        if (!player || !player.getCurrentTime) return alert("Muat dan putar video terlebih dahulu!");
+        let current = Math.floor(player.getCurrentTime());
+        
+        // Validasi: End tidak boleh kurang dari Start
+        if (startSec !== null && current <= startSec) {
+            return alert("Waktu End harus lebih besar dari waktu Start!");
+        }
+
+        endSec = current;
+        document.getElementById('endDisplay').innerText = `End: ${formatTime(endSec)}`;
+        generateEmbedCode();
+    }
+
+    function resetTimes() {
+        startSec = null;
+        endSec = null;
+        document.getElementById('startDisplay').innerText = "Start: Belum diatur";
+        document.getElementById('endDisplay').innerText = "End: Belum diatur";
+        generateEmbedCode();
+    }
+
+    // ==========================================
+    // 3. GENERATOR KODE HTML & COPY
+    // ==========================================
+    function generateEmbedCode() {
+        if (!currentVideoId) return;
+
+        let params = [];
+        if (startSec !== null) params.push(`start=${startSec}`);
+        if (endSec !== null) params.push(`end=${endSec}`);
+        params.push('enablejsapi=1');
+
+        let paramString = params.length > 0 ? '?' + params.join('&') : '';
+        let srcUrl = `https://www.youtube.com/embed/${currentVideoId}${paramString}`;
+        
+        let htmlCode = `<iframe src="${srcUrl}" frameborder="0" allowfullscreen></iframe>`;
+        document.getElementById('embedOutput').value = htmlCode;
+    }
+
+    function copyCode() {
+        let output = document.getElementById('embedOutput');
+        if (!currentVideoId) return alert("Belum ada kode yang dihasilkan.");
+        
+        output.select();
+        output.setSelectionRange(0, 99999); // Untuk perangkat mobile
+        
+        navigator.clipboard.writeText(output.value).then(() => {
+            let btn = document.getElementById('copyBtn');
+            btn.innerText = "✅ Berhasil Dicopy!";
+            btn.style.background = "#2ecc71";
+            
+            setTimeout(() => {
+                btn.innerText = "📋 Copy Kode";
+                btn.style.background = "var(--accent-blue)";
+            }, 2000);
+        });
+    }
+</script>
+
+</body>
+</html>
